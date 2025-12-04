@@ -8,5 +8,4 @@ node_modules
 out/
 
 # Convex
-convex/_generated/
 convex/*.js
