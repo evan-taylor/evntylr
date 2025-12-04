@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { SessionNotesContext } from "@/app/notes/session-notes";
 import { api } from "@/convex/_generated/api";
 import { groupNotesByCategory, sortGroupedNotes } from "@/lib/note-utils";
@@ -22,7 +23,6 @@ import { SearchBar } from "./search";
 import SessionId from "./session-id";
 import { SidebarContent } from "./sidebar-content";
 import { ScrollArea } from "./ui/scroll-area";
-import { toast } from "./ui/use-toast";
 
 const labels: Record<string, React.ReactNode> = {
   pinned: (
@@ -352,9 +352,7 @@ export default function Sidebar({
         router.push(`/${slug}`);
       }
 
-      toast({
-        description: isPinning ? "Note pinned" : "Note unpinned",
-      });
+      toast(isPinning ? "Note pinned" : "Note unpinned");
     },
     [router, isMobile, clearSearch]
   );
@@ -362,9 +360,7 @@ export default function Sidebar({
   const handleNoteDelete = useCallback(
     async (noteToDelete: Note) => {
       if (noteToDelete.public) {
-        toast({
-          description: "Oops! You can't delete public notes",
-        });
+        toast.error("Oops! You can't delete public notes");
         return;
       }
 
@@ -406,9 +402,7 @@ export default function Sidebar({
         refreshSessionNotes();
         router.refresh();
 
-        toast({
-          description: "Note deleted",
-        });
+        toast.success("Note deleted");
       } catch (error) {
         console.error("Error deleting note:", error);
       }

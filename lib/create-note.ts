@@ -1,5 +1,5 @@
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { toast } from "@/components/ui/use-toast";
 import type { CreateNoteInput } from "./types";
 
 type CreateNoteMutation = (args: CreateNoteInput) => Promise<string>;
@@ -61,9 +61,7 @@ export async function createNote(options: CreateNoteOptions) {
       });
     }
 
-    toast({
-      description: "Private note created",
-    });
+    toast.success("Private note created");
   } catch (error) {
     console.error("Error creating note:", error);
   }

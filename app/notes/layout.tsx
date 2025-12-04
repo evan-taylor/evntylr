@@ -15,8 +15,39 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: siteConfig.title,
-  description: siteConfig.title,
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.title}`,
+  },
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
+  authors: [{ name: siteConfig.title }],
+  creator: siteConfig.title,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    siteName: siteConfig.title,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    creator: "@evntylr",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -27,14 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>{siteConfig.title}</title>
-        <meta content="summary_large_image" property="twitter:card" />
-        <meta content={siteConfig.title} property="twitter:title" />
-        <meta content={siteConfig.title} property="twitter:description" />
-        <meta content={siteConfig.title} property="og:site_name" />
-        <meta content={siteConfig.title} property="og:description" />
-        <meta content={siteConfig.title} property="og:title" />
-        <meta content={siteConfig.url} property="og:url" />
+        <link href={siteConfig.url} rel="canonical" />
       </head>
       <body
         className={cn("min-h-dvh font-sans antialiased", fontSans.variable)}

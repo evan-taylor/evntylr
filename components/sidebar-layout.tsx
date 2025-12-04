@@ -3,9 +3,9 @@
 import { useQuery } from "convex/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Toaster } from "sonner";
 import { SessionNotesProvider } from "@/app/notes/session-notes";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Toaster } from "@/components/ui/toaster";
 import { api } from "@/convex/_generated/api";
 import type { Note } from "@/lib/types";
 import { useMobileDetect } from "./mobile-detector";

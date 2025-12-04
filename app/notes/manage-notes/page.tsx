@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Note } from "@/lib/types";
 
@@ -47,11 +47,7 @@ export default function AdminPage() {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
     } else {
-      toast({
-        title: "Error",
-        description: "Incorrect password",
-        variant: "destructive",
-      });
+      toast.error("Incorrect password");
     }
   };
 
@@ -76,14 +72,10 @@ export default function AdminPage() {
         });
         setEditingNote(null);
         setEditForm({});
-        toast({ title: "Success", description: "Note updated" });
+        toast.success("Note updated");
       } catch (error) {
         console.error("Failed to update note:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update note",
-          variant: "destructive",
-        });
+        toast.error("Failed to update note");
       }
     },
     [editForm, updateNote]
@@ -123,23 +115,16 @@ export default function AdminPage() {
     async (slug: string) => {
       if (deleteConfirm !== slug) {
         setDeleteConfirm(slug);
-        toast({
-          title: "Confirm",
-          description: "Click delete again to confirm",
-        });
+        toast("Click delete again to confirm");
         return;
       }
       setDeleteConfirm(null);
       try {
         await deleteNote({ slug });
-        toast({ title: "Success", description: "Note deleted" });
+        toast.success("Note deleted");
       } catch (error) {
         console.error("Failed to delete note:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete note",
-          variant: "destructive",
-        });
+        toast.error("Failed to delete note");
       }
     },
     [deleteNote, deleteConfirm]
@@ -149,11 +134,7 @@ export default function AdminPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!(newNote.slug && newNote.title)) {
-        toast({
-          title: "Error",
-          description: "Slug and title are required",
-          variant: "destructive",
-        });
+        toast.error("Slug and title are required");
         return;
       }
       try {
@@ -176,14 +157,10 @@ export default function AdminPage() {
           pinned: false,
         });
         setShowNewNoteForm(false);
-        toast({ title: "Success", description: "Note created" });
+        toast.success("Note created");
       } catch (error) {
         console.error("Failed to create note:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create note. Slug may already exist.",
-          variant: "destructive",
-        });
+        toast.error("Failed to create note. Slug may already exist.");
       }
     },
     [createNote, newNote]

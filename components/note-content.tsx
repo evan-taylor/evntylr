@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { useCallback, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import {
   getImageFromClipboard,
@@ -117,14 +117,13 @@ export default function NoteContent({
       // Prevent default paste behavior for images
       e.preventDefault();
 
-      const { dismiss } = toast({ description: "Uploading image..." });
+      const toastId = toast.loading("Uploading image...");
 
       try {
         const result = await uploadNoteImage(imageFile, generateUploadUrl);
 
-        dismiss();
-
         if (result.success && result.url && textareaRef.current) {
+          toast.success("Image uploaded!", { id: toastId });
           insertImageMarkdown(textareaRef.current, result.url);
           // Save the updated content since the synthetic event doesn't trigger React's onChange
           // Use setTimeout to defer the state update and avoid "Cannot update a component while rendering" warning
@@ -132,18 +131,14 @@ export default function NoteContent({
           setTimeout(() => saveNote({ content: newContent }), 0);
         } else if (result.error) {
           console.error("Image upload failed:", result.error);
-          toast({
-            description: `Failed to upload image: ${result.error}`,
-            variant: "destructive",
+          toast.error(`Failed to upload image: ${result.error}`, {
+            id: toastId,
           });
         }
       } catch (error) {
         console.error("Unexpected error during image upload:", error);
-        dismiss();
-        toast({
-          description:
-            "An unexpected error occurred while uploading the image.",
-          variant: "destructive",
+        toast.error("An unexpected error occurred while uploading the image.", {
+          id: toastId,
         });
       }
     },
