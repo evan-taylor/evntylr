@@ -83,7 +83,7 @@ export function SidebarContent({
                   handleNoteDelete={handleNoteDelete}
                   handlePinToggle={handlePinToggle}
                   isHighlighted={false}
-                  isPinned={pinnedNotes.has(item.slug)}
+                  isPinned={item.pinned === true || pinnedNotes.has(item.slug)}
                   isSearching={false}
                   item={item}
                   key={item._id}
@@ -115,7 +115,7 @@ export function SidebarContent({
               handleNoteDelete={handleDelete}
               handlePinToggle={handlePinToggleWithClear}
               isHighlighted={index === highlightedIndex}
-              isPinned={pinnedNotes.has(item.slug)}
+              isPinned={item.pinned === true || pinnedNotes.has(item.slug)}
               isSearching={true}
               item={item}
               key={item._id}
