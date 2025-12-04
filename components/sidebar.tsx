@@ -376,6 +376,18 @@ export default function Sidebar({
           );
           return newUnpinned;
         });
+        // Also remove from pinnedNotes if it's there (from initial load)
+        setPinnedNotes((prev) => {
+          const newPinned = new Set(prev);
+          if (newPinned.has(slug)) {
+            newPinned.delete(slug);
+            localStorage.setItem(
+              "pinnedNotes",
+              JSON.stringify(Array.from(newPinned))
+            );
+          }
+          return newPinned;
+        });
       } else if (isPinning && note?.public && note?.pinned === true) {
         // If re-pinning a public note that has pinned: true, remove from unpinned set
         setUnpinnedPublicNotes((prev) => {
@@ -386,6 +398,16 @@ export default function Sidebar({
             JSON.stringify(Array.from(newUnpinned))
           );
           return newUnpinned;
+        });
+        // Also add to pinnedNotes to ensure it stays pinned
+        setPinnedNotes((prev) => {
+          const newPinned = new Set(prev);
+          newPinned.add(slug);
+          localStorage.setItem(
+            "pinnedNotes",
+            JSON.stringify(Array.from(newPinned))
+          );
+          return newPinned;
         });
       } else {
         // Regular pin/unpin for non-public or non-admin-pinned notes
