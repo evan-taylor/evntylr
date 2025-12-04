@@ -148,31 +148,40 @@ export const NoteItem = React.memo(function NoteItemComponent({
   const displayDivider = shouldShowDivider(itemState, showDivider);
 
   const selectedClass = isSelected
-    ? "rounded-md bg-[#FFE390] dark:bg-[#9D7D28] dark:text-white"
-    : "";
-  const dividerClass = displayDivider
-    ? 'after:mx-2 after:block after:border-muted-foreground/20 after:border-t after:content-[""]'
-    : "";
+    ? "rounded-lg bg-[#FFE391] dark:bg-[#464646] mx-2 my-0.5"
+    : "mx-2 my-0.5 liquid-transition";
+  const dividerClass =
+    displayDivider && !isSelected
+      ? 'after:mx-4 after:block after:border-[#3A3A3A]/30 after:border-t after:content-[""] dark:after:border-[#3A3A3A]'
+      : "";
   const previewClass = isSelected
-    ? "text-muted-foreground dark:text-white/80"
+    ? "text-black/60 dark:text-white/60"
     : "text-muted-foreground";
 
   const NoteContent = (
     <li className={`h-[70px] w-full ${selectedClass} ${dividerClass}`}>
-      <div className={"h-full w-full px-4"} data-note-slug={item.slug}>
+      <div className={"h-full w-full px-3"} data-note-slug={item.slug}>
         <Link
           className="block flex h-full w-full flex-col justify-center py-2"
           href={`/${item.slug || ""}`}
           prefetch={true}
           tabIndex={-1}
         >
-          <h2 className="line-clamp-1 break-words px-2 font-bold text-sm">
+          <h2
+            className={`line-clamp-1 break-words px-2 font-semibold text-sm ${isSelected ? "text-black dark:text-white" : ""}`}
+          >
             {item.emoji} {item.title}
           </h2>
           <p
             className={`line-clamp-1 break-words pl-2 text-xs ${previewClass}`}
           >
-            <span className="text-black dark:text-white">
+            <span
+              className={
+                isSelected
+                  ? "font-medium text-black/60 dark:text-white/60"
+                  : "font-medium text-muted-foreground"
+              }
+            >
               {getDisplayDateByCategory(
                 item.category,
                 item._id

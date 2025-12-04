@@ -45,7 +45,6 @@ export type CommandMenuProps = {
   deleteNote: (note: Note) => void;
   highlightedNote: Note | null;
   ref: React.RefObject<{ setOpen: (open: boolean) => void } | null>;
-  setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
   pinnedNotes: Set<string>;
   unpinnedPublicNotes: Set<string>;
@@ -64,7 +63,6 @@ export const CommandMenu = forwardRef<
       togglePinned,
       deleteNote,
       highlightedNote,
-      setSelectedNoteSlug,
       isMobile,
       pinnedNotes,
       unpinnedPublicNotes,
@@ -128,7 +126,6 @@ export const CommandMenu = forwardRef<
         router,
         addNewPinnedNote,
         refreshSessionNotes,
-        setSelectedNoteSlug,
         isMobile,
         createNoteMutation,
       });

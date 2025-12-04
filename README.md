@@ -221,6 +221,22 @@ you can also manually add images:
 
 ```markdown
 ---
-
-``
 ```
+
+## attribution
+
+this project is built on top of [alana goyal's apple notes-inspired personal website](https://github.com/alanagoyal/alanagoyal). huge thanks to alana for open-sourcing her beautiful work!
+
+**what we changed from the original:**
+
+- **backend**: migrated from supabase to [convex](https://convex.dev) for real-time updates
+- **framework**: upgraded to next.js 16 and react 19
+- **design**: updated the theme to match macos sequoia / ios 26 aesthetic
+- **pinning**: added per-user pinning preferences via localstorage
+- **linting**: using [ultracite](https://github.com/haydenbleasel/ultracite) (biome) for code quality
+
+check out [alana's repo](https://github.com/alanagoyal/alanagoyal) if you want to build something similar!
+
+## license
+
+licensed under the mit license.

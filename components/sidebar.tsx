@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation } from "convex/react";
-import { Pin } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -25,11 +24,7 @@ import { SidebarContent } from "./sidebar-content";
 import { ScrollArea } from "./ui/scroll-area";
 
 const labels: Record<string, React.ReactNode> = {
-  pinned: (
-    <>
-      <Pin className="mr-1 inline-block h-4 w-4" /> Pinned
-    </>
-  ),
+  pinned: "Pinned",
   today: "Today",
   yesterday: "Yesterday",
   "7": "Previous 7 Days",
@@ -612,8 +607,8 @@ export default function Sidebar({
       className={`${
         isMobile
           ? "w-full max-w-full"
-          : "w-[320px] border-muted-foreground/20 border-r"
-      } flex h-dvh flex-col dark:bg-muted`}
+          : "w-[320px] border-border/50 border-r dark:bg-[#202121]"
+      } flex h-dvh flex-col bg-white dark:bg-[#202121]`}
     >
       <div className={`${isMobile ? "w-full" : "w-[320px]"}`}>
         <Nav
@@ -621,7 +616,6 @@ export default function Sidebar({
           clearSearch={clearSearch}
           isMobile={isMobile}
           isScrolled={isScrolled}
-          setSelectedNoteSlug={setSelectedNoteSlug}
         />
       </div>
       <ScrollArea
@@ -648,7 +642,6 @@ export default function Sidebar({
             notes={notes}
             pinnedNotes={pinnedNotes}
             sessionId={sessionId}
-            setSelectedNoteSlug={setSelectedNoteSlug}
             togglePinned={handlePinToggle}
             unpinnedPublicNotes={unpinnedPublicNotes}
           />

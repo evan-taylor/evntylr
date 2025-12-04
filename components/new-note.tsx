@@ -12,12 +12,10 @@ import SessionId from "./session-id";
 export default function NewNote({
   addNewPinnedNote,
   clearSearch,
-  setSelectedNoteSlug,
   isMobile,
 }: {
   addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   clearSearch: () => void;
-  setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
 }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -33,7 +31,6 @@ export default function NewNote({
       router,
       addNewPinnedNote,
       refreshSessionNotes,
-      setSelectedNoteSlug,
       isMobile,
       createNoteMutation,
     });
@@ -43,7 +40,6 @@ export default function NewNote({
     addNewPinnedNote,
     clearSearch,
     refreshSessionNotes,
-    setSelectedNoteSlug,
     isMobile,
     createNoteMutation,
   ]);
@@ -75,7 +71,7 @@ export default function NewNote({
       <SessionId setSessionId={setSessionId} />
       <button
         aria-label="Create new note"
-        className={`rounded-lg hover:bg-muted-foreground/10 sm:p-2 ${isMobile ? "p-2" : ""}`}
+        className="liquid-transition flex h-9 w-9 items-center justify-center rounded-full border border-muted-foreground/30 bg-transparent text-muted-foreground shadow-sm hover:border-muted-foreground/50 hover:bg-muted-foreground/5 hover:text-foreground dark:border-muted-foreground/20 dark:hover:border-muted-foreground/40 dark:hover:bg-white/5"
         onClick={handleCreateNote}
         type="button"
       >

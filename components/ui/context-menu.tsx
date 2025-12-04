@@ -82,7 +82,7 @@ const ContextMenuContent = forwardRef<
   <Portal>
     <Content
       className={cn(
-        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in dark:bg-muted",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[12rem] overflow-hidden rounded-xl bg-white p-1.5 text-popover-foreground shadow-xl data-[state=closed]:animate-out data-[state=open]:animate-in dark:bg-[#323232]",
         className
       )}
       ref={ref}
@@ -100,7 +100,7 @@ const ContextMenuItem = forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <Item
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm bg-popover px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:bg-muted dark:focus:bg-background",
+      "liquid-transition relative flex cursor-default select-none items-center rounded-lg px-3 py-1.5 text-sm outline-none focus:bg-[#FFD60A] focus:text-black data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-[#FFD60A] dark:focus:text-black",
       inset === true && "pl-8",
       className
     )}

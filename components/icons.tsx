@@ -4,7 +4,7 @@ type IconProps = React.HTMLAttributes<SVGElement>;
 
 export const Icons = {
   new: (props: IconProps) => (
-    <PenSquare className="text-muted-foreground" size={16} {...props} />
+    <PenSquare className="text-current" size={16} {...props} />
   ),
   search: (props: IconProps) => (
     <Search className="text-muted-foreground" size={14} {...props} />

@@ -51,7 +51,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <SessionNotesProvider>
-      <div className="flex h-dvh dark:text-white">
+      <div className="flex h-dvh bg-white text-black dark:bg-[#1E1E1E] dark:text-white">
         {showSidebar === true && (
           <Sidebar
             isMobile={isMobile}
@@ -66,7 +66,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
           />
         )}
         {!(isMobile === true && showSidebar === true) && (
-          <div className="h-dvh flex-grow">
+          <div className="h-dvh flex-grow bg-white dark:bg-[#1E1E1E]">
             <ScrollArea className="h-full" isMobile={isMobile}>
               {children}
             </ScrollArea>

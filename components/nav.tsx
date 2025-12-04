@@ -3,7 +3,6 @@ import NewNote from "./new-note";
 type NavProps = {
   addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   clearSearch: () => void;
-  setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
   isScrolled: boolean;
 };
@@ -11,14 +10,13 @@ type NavProps = {
 export function Nav({
   addNewPinnedNote,
   clearSearch,
-  setSelectedNoteSlug,
   isMobile,
   isScrolled,
 }: NavProps) {
   return (
     <div
-      className={`flex items-center justify-between px-4 py-2 ${
-        isScrolled ? "border-b shadow-[0_2px_4px_-1px_rgba(0,0,0,0.15)]" : ""
+      className={`liquid-transition flex items-center justify-between px-4 py-2 ${
+        isScrolled ? "border-border/30 border-b shadow-sm" : ""
       }`}
     >
       <div className="flex items-center gap-1.5 p-2">
@@ -55,7 +53,6 @@ export function Nav({
         addNewPinnedNote={addNewPinnedNote}
         clearSearch={clearSearch}
         isMobile={isMobile}
-        setSelectedNoteSlug={setSelectedNoteSlug}
       />
     </div>
   );

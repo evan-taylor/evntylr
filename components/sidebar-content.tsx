@@ -90,7 +90,7 @@ export function SidebarContent({
         }
         return (
           <section key={categoryKey}>
-            <h3 className="ml-2 py-1 font-bold text-muted-foreground text-xs">
+            <h3 className="mt-4 mb-1 ml-5 font-bold text-muted-foreground text-sm tracking-tight">
               {labels[categoryKey as keyof typeof labels]}
             </h3>
             <ul>

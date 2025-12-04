@@ -67,15 +67,15 @@ export function SearchBar({
   };
 
   return (
-    <div className="p-2">
+    <div className="px-3 py-2">
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icons.search className="text-muted-foreground" />
+          <Icons.search className="h-4 w-4 text-muted-foreground" />
         </div>
         <input
           aria-label="Search notes"
           autoComplete="off"
-          className="w-full rounded-lg border border-muted-foreground/20 py-0.5 pr-8 pl-8 text-base placeholder:text-sm focus:outline-none sm:text-sm dark:border-none dark:bg-[#353533]"
+          className="liquid-transition w-full rounded-lg bg-black/5 py-1.5 pr-9 pl-9 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD60A]/50 dark:bg-[#323232]"
           id="search"
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search"
@@ -86,11 +86,11 @@ export function SearchBar({
         {searchQuery !== "" && (
           <button
             aria-label="Clear search"
-            className="-translate-y-1/2 absolute top-1/2 right-2 transform text-muted-foreground hover:text-foreground"
+            className="-translate-y-1/2 liquid-transition absolute top-1/2 right-3 transform rounded-full p-1 text-muted-foreground hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
             onClick={clearSearch}
             type="button"
           >
-            <Icons.close className="h-4 w-4 text-muted-foreground" />
+            <Icons.close className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

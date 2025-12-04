@@ -9,7 +9,6 @@ type CreateNoteOptions = {
   router: { push: (path: string) => void; refresh: () => void };
   addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   refreshSessionNotes: () => Promise<void>;
-  setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
   createNoteMutation: CreateNoteMutation;
 };
@@ -20,7 +19,6 @@ export async function createNote(options: CreateNoteOptions) {
     router,
     addNewPinnedNote,
     refreshSessionNotes,
-    setSelectedNoteSlug,
     isMobile,
     createNoteMutation,
   } = options;
@@ -55,9 +53,8 @@ export async function createNote(options: CreateNoteOptions) {
     } else {
       addNewPinnedNote(slug, false);
       refreshSessionNotes().then(() => {
-        setSelectedNoteSlug(slug);
+        // Navigate to the new note - the pathname change will update the sidebar selection automatically
         router.push(`/${slug}`);
-        router.refresh();
       });
     }
 
