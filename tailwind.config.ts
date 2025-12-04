@@ -1,14 +1,15 @@
-import type { Config } from "tailwindcss"
-const { fontFamily } = require("tailwindcss/defaultTheme")
+import type { Config } from "tailwindcss";
+
+const { fontFamily } = require("tailwindcss/defaultTheme");
 
 const config = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-	],
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -20,7 +21,13 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["-apple-system", "SF Pro", "SF Pro Display", "SF Pro Text", ...fontFamily.sans],
+        sans: [
+          "-apple-system",
+          "SF Pro",
+          "SF Pro Display",
+          "SF Pro Text",
+          ...fontFamily.sans,
+        ],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -79,6 +86,6 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
+} satisfies Config;
 
-export default config
+export default config;

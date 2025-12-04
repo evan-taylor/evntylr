@@ -1,6 +1,6 @@
-# [notes](https://alanagoyal.com/notes)
+# [notes](https://evntylr.com/notes)
 
-i'm obsessed with re-creating apple products. this one is a notes-inspired website that doubles as my personal website.
+a notes-inspired website that doubles as my personal site. inspired by apple notes.
 
 ## how it works
 
@@ -12,77 +12,64 @@ the app uses a session-based architecture with two types of notes:
 
 **private notes**: anyone can create and view their own private notes. each browser session gets a unique session id (stored in localstorage) that links to the notes you create. only you can see and edit your private notes.
 
+**pinned notes**: admin-pinned notes appear for all users in the sidebar, separate from public notes.
+
 the app is built with:
-- **next.js 14** with app router for server-side rendering and static generation
+
+- **next.js 16** with app router for server-side rendering and static generation
+- **react 19** with the latest features
 - **typescript** for type safety
-- **supabase** for database and authentication
+- **convex** for real-time database and backend
 - **react-markdown** with github flavored markdown support
 - **tailwind css** for styling
 
 ### backend
 
-the app uses [supabase](https://supabase.com) for the postgresql database with row-level security policies to control access to public and private notes.
+the app uses [convex](https://convex.dev) as a real-time serverless backend. convex provides:
+
+- real-time data sync across all clients
+- automatic caching and optimistic updates
+- type-safe queries and mutations
+- built-in indexing for fast lookups
 
 **database schema**:
 
 the `notes` table stores all notes with these fields:
-- `id` (uuid): unique identifier
-- `title` (text): note title
-- `content` (text): markdown content
-- `session_id` (uuid): links notes to browser sessions
+
+- `_id` (convex id): unique identifier (auto-generated)
+- `_creationTime` (number): timestamp when note was created (auto-generated)
+- `slug` (string): url-friendly identifier
+- `title` (string, optional): note title
+- `content` (string, optional): markdown content
+- `emoji` (string, optional): note icon
 - `public` (boolean): controls visibility
-- `slug` (text): url-friendly identifier
-- `category` (text): optional categorization
-- `emoji` (text): note icon
-- `created_at` (timestamp): when the note was created
+- `sessionId` (string, optional): links notes to browser sessions
+- `category` (string, optional): categorization (e.g., "today", "favorites")
+- `pinned` (boolean, optional): admin-pinned notes shown to all users
 
-### caching
+**indexes**:
 
-public notes are cached for 24 hours using next.js isr. private notes are always real-time.
+- `by_slug`: fast lookup by url slug
+- `by_session`: get all notes for a session
+- `by_public`: filter public/private notes
 
-**to manually revalidate public notes**:
+### real-time updates
 
-set `REVALIDATE_TOKEN` in environment variables, then:
-
-```bash
-# revalidate sidebar (when adding/removing public notes)
-curl -X POST "https://yourdomain.com/notes/revalidate" \
-  -H "Content-Type: application/json" \
-  -H "x-revalidate-token: your-token" \
-  -d '{"layout": true}'
-
-# revalidate specific note (when updating content)
-curl -X POST "https://yourdomain.com/notes/revalidate" \
-  -H "Content-Type: application/json" \
-  -H "x-revalidate-token: your-token" \
-  -d '{"slug": "note-slug"}'
-```
-
-or redeploy on vercel to refresh all pages.
-
-## clone the repo
-
-`git clone https://github.com/alanagoyal/alanagoyal`
+convex provides automatic real-time synchronization. when you edit a note, all connected clients see the changes instantly—no manual revalidation or caching configuration needed.
 
 ## set up the database
 
-this project uses [supabase](https://supabase.com) as a backend. to set up the database:
+this project uses [convex](https://convex.dev) as a backend. to set up:
 
-1. create a [new project](https://database.new) and enter your project details
-2. wait for the database to launch
-3. navigate to the sql editor in the dashboard
-4. paste the sql from the [migration file](https://github.com/alanagoyal/alanagoyal/blob/main/supabase/migrations/20240710180237_initial.sql) into the sql editor and press run
+1. create a convex account at [convex.dev](https://convex.dev)
+2. install the convex cli: `npm install convex`
+3. run `npx convex dev` to initialize your project and deploy functions
+4. the cli will prompt you to create a new project or link to an existing one
 
-alternatively, use the supabase cli to run migrations locally:
-```bash
-supabase db push
-```
-
-grab the project url and anon key from the api settings and put them in a new `.env.local` file in the root directory:
+grab the deployment url and add it to a new `.env.local` file in the root directory:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL="<your-supabase-url>"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="<your-anon-key>"
+NEXT_PUBLIC_CONVEX_URL="<your-convex-deployment-url>"
 ```
 
 ## install dependencies
@@ -95,9 +82,17 @@ run the application in the command line and it will be available at http://local
 
 `npm run dev`
 
+this starts both the next.js dev server and convex dev server concurrently.
+
 ## deploy
 
-deploy using [vercel](https://vercel.com)
+deploy using [vercel](https://vercel.com):
+
+1. connect your github repository to vercel
+2. add the `NEXT_PUBLIC_CONVEX_URL` environment variable
+3. deploy!
+
+for convex, run `npm run convex:deploy` to deploy your functions to production.
 
 ## markdown syntax for notes
 
@@ -107,7 +102,9 @@ notes support github flavored markdown (gfm) with interactive features. here's w
 
 ```markdown
 # heading 1
+
 ## heading 2
+
 ### heading 3
 ```
 
@@ -115,7 +112,7 @@ notes support github flavored markdown (gfm) with interactive features. here's w
 
 ```markdown
 **bold text**
-*italic text*
+_italic text_
 ~~strikethrough~~
 `inline code`
 ```
@@ -123,6 +120,7 @@ notes support github flavored markdown (gfm) with interactive features. here's w
 ### lists
 
 **unordered lists**:
+
 ```markdown
 - item one
 - item two
@@ -131,6 +129,7 @@ notes support github flavored markdown (gfm) with interactive features. here's w
 ```
 
 **ordered lists**:
+
 ```markdown
 1. first item
 2. second item
@@ -154,20 +153,21 @@ the app automatically updates the markdown when you click checkboxes, so your pr
 create tables using standard markdown table syntax. tables render with a styled dark theme:
 
 ```markdown
-| book | author | year read |
-|------|--------|-----------|
-| the great gatsby | f. scott fitzgerald | 2023 |
-| 1984 | george orwell | 2024 |
+| book             | author              | year read |
+| ---------------- | ------------------- | --------- |
+| the great gatsby | f. scott fitzgerald | 2023      |
+| 1984             | george orwell       | 2024      |
 ```
 
 this renders as:
 
-| book | author | year read |
-|------|--------|-----------|
-| the great gatsby | f. scott fitzgerald | 2023 |
-| 1984 | george orwell | 2024 |
+| book             | author              | year read |
+| ---------------- | ------------------- | --------- |
+| the great gatsby | f. scott fitzgerald | 2023      |
+| 1984             | george orwell       | 2024      |
 
 **table features**:
+
 - white borders on dark background
 - properly padded cells
 - header row styling
@@ -187,6 +187,7 @@ all links automatically open in new tabs for better navigation.
 **inline code**: use backticks for `inline code`
 
 **code blocks**: use triple backticks for multi-line code
+
 ````markdown
 ```javascript
 function hello() {
@@ -204,23 +205,22 @@ function hello() {
 
 ### images
 
-paste images directly into notes by copying any image (screenshot, file, etc.) and pressing `ctrl+v` (or `cmd+v` on mac). images are automatically uploaded to supabase storage and inserted as markdown.
+paste images directly into notes by copying any image (screenshot, file, etc.) and pressing `ctrl+v` (or `cmd+v` on mac). images are automatically uploaded to convex file storage and inserted as markdown.
 
 you can also manually add images:
+
 ```markdown
 ![alt text](image-url.jpg)
 ```
 
 **supported formats**: jpeg, png, gif, webp (including animated gifs)
-**file size limit**: 5mb
+**file size limit**: 5mb (larger images are automatically compressed)
 **images are automatically resized** to fit the note width while maintaining aspect ratio
 
 ### horizontal rules
 
 ```markdown
 ---
+
+``
 ```
-
-## license
-
-licensed under the [mit license](https://github.com/alanagoyal/alanagoyal/blob/main/LICENSE.md).

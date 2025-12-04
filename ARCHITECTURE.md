@@ -41,7 +41,7 @@ The app uses server-side rendering (SSR) with Incremental Static Regeneration (I
 ### Content & Markdown
 - **react-markdown** - Markdown rendering
 - **remark-gfm** - GitHub Flavored Markdown support
-- **emoji-mart** - Emoji picker
+- **frimousse** - Emoji picker (React 19 compatible)
 
 ### Utilities
 - **uuid** - Session ID and note ID generation
@@ -899,7 +899,7 @@ useEffect(() => {
 
 **Issue**: App imports many Radix UI components and other libraries:
 - Command menu (`cmdk`)
-- Emoji picker (`@emoji-mart/react`, `@emoji-mart/data`)
+- Emoji picker (`frimousse`)
 - Multiple Radix UI primitives
 - Full Lucide icon set
 

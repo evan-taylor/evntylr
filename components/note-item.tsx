@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import React, {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { useSwipeable } from "react-swipeable";
 import { useMobileDetect } from "@/components/mobile-detector";
+import { getDisplayDateByCategory } from "@/lib/note-utils";
+import type { Note } from "@/lib/types";
 import { SwipeActions } from "./swipe-actions";
 import {
   ContextMenu,
@@ -9,22 +16,53 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Note } from "@/lib/types";
-import { getDisplayDateByCategory } from "@/lib/note-utils";
-import { Dispatch, SetStateAction } from "react";
 
 function previewContent(content: string): string {
   return content
-    .replace(/!\[[^\]]*\]\([^\)]+\)/g, "")
-    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/\[[ x]\]/g, "")
-    .replace(/[#*_~`>+\-]/g, "")
+    .replace(/[#*_~`>+-]/g, "")
     .replace(/\n+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-interface NoteItemProps {
+// Types for helper functions
+type NoteItemState = {
+  isMobile: boolean | null;
+  isSearching: boolean;
+  isHighlighted: boolean;
+  itemSlug: string;
+  selectedNoteSlug: string | null;
+};
+
+// Helper to determine if note item is selected/highlighted
+function isItemSelected(state: NoteItemState): boolean {
+  if (state.isMobile) {
+    return false;
+  }
+  if (state.isSearching) {
+    return state.isHighlighted;
+  }
+  return state.itemSlug === state.selectedNoteSlug;
+}
+
+// Helper to determine if divider should be shown
+function shouldShowDivider(
+  state: NoteItemState,
+  showDivider: boolean
+): boolean {
+  if (state.isMobile || !showDivider) {
+    return false;
+  }
+  if (state.isSearching) {
+    return !state.isHighlighted;
+  }
+  return state.itemSlug !== state.selectedNoteSlug;
+}
+
+type NoteItemProps = {
   item: Note;
   selectedNoteSlug: string | null;
   sessionId: string;
@@ -38,13 +76,13 @@ interface NoteItemProps {
   openSwipeItemSlug: string | null;
   setOpenSwipeItemSlug: Dispatch<SetStateAction<string | null>>;
   showDivider?: boolean;
-}
+};
 
-export const NoteItem = React.memo(function NoteItem({
+export const NoteItem = React.memo(function NoteItemComponent({
   item,
   selectedNoteSlug,
   sessionId,
-  onNoteSelect,
+  onNoteSelect: _onNoteSelect,
   onNoteEdit,
   handlePinToggle,
   isPinned,
@@ -55,6 +93,8 @@ export const NoteItem = React.memo(function NoteItem({
   setOpenSwipeItemSlug,
   showDivider = false,
 }: NoteItemProps) {
+  // Note: _onNoteSelect is kept for prop compatibility
+  const _ = _onNoteSelect; // Silence unused variable warning
   const isMobile = useMobileDetect();
   const [isSwiping, setIsSwiping] = useState(false);
   const isSwipeOpen = openSwipeItemSlug === item.slug;
@@ -88,7 +128,7 @@ export const NoteItem = React.memo(function NoteItem({
     setOpenSwipeItemSlug(null);
   };
 
-  const canEditOrDelete = item.session_id === sessionId;
+  const canEditOrDelete = item.sessionId === sessionId;
 
   const handleSwipeAction = (action: () => void) => {
     if (isSwipeOpen) {
@@ -96,46 +136,49 @@ export const NoteItem = React.memo(function NoteItem({
     }
   };
 
+  // Pre-compute selection state
+  const itemState: NoteItemState = {
+    isMobile,
+    isSearching,
+    isHighlighted,
+    itemSlug: item.slug,
+    selectedNoteSlug,
+  };
+  const isSelected = isItemSelected(itemState);
+  const displayDivider = shouldShowDivider(itemState, showDivider);
+
+  const selectedClass = isSelected
+    ? "rounded-md bg-[#FFE390] dark:bg-[#9D7D28] dark:text-white"
+    : "";
+  const dividerClass = displayDivider
+    ? 'after:mx-2 after:block after:border-muted-foreground/20 after:border-t after:content-[""]'
+    : "";
+  const previewClass = isSelected
+    ? "text-muted-foreground dark:text-white/80"
+    : "text-muted-foreground";
+
   const NoteContent = (
-    <li
-      tabIndex={0}
-      className={`h-[70px] w-full ${
-        (!isMobile && isSearching && isHighlighted) ||
-        (!isSearching && item.slug === selectedNoteSlug)
-          ? "bg-[#FFE390] dark:bg-[#9D7D28] dark:text-white rounded-md"
-          : ""
-      } ${
-        !isMobile && showDivider &&
-        (isSearching ? !isHighlighted : item.slug !== selectedNoteSlug)
-          ? 'after:content-[""] after:block after:mx-2 after:border-t after:border-muted-foreground/20'
-          : ""
-      }`}
-    >
-      <div 
-        data-note-slug={item.slug}
-        className={`h-full w-full px-4`}
-      >
+    <li className={`h-[70px] w-full ${selectedClass} ${dividerClass}`}>
+      <div className={"h-full w-full px-4"} data-note-slug={item.slug}>
         <Link
-          href={`/notes/${item.slug || ""}`}
+          className="block flex h-full w-full flex-col justify-center py-2"
+          href={`/${item.slug || ""}`}
           prefetch={true}
           tabIndex={-1}
-          className="block py-2 h-full w-full flex flex-col justify-center"
         >
-          <h2 className="text-sm font-bold px-2 break-words line-clamp-1">
+          <h2 className="line-clamp-1 break-words px-2 font-bold text-sm">
             {item.emoji} {item.title}
           </h2>
           <p
-            className={`text-xs pl-2 break-words line-clamp-1 ${
-              (!isMobile && isSearching && isHighlighted) ||
-              (!isSearching && item.slug === selectedNoteSlug)
-                ? "text-muted-foreground dark:text-white/80"
-                : "text-muted-foreground"
-            }`}
+            className={`line-clamp-1 break-words pl-2 text-xs ${previewClass}`}
           >
             <span className="text-black dark:text-white">
-              {getDisplayDateByCategory(item.category, item.id).toLocaleDateString("en-US")}
+              {getDisplayDateByCategory(
+                item.category,
+                item._id
+              ).toLocaleDateString("en-US")}
             </span>{" "}
-            {previewContent(item.content)}
+            {previewContent(item.content ?? "")}
           </p>
         </Link>
       </div>
@@ -160,50 +203,46 @@ export const NoteItem = React.memo(function NoteItem({
     return (
       <div {...handlers} className="relative overflow-hidden">
         <div
-          data-note-slug={item.slug}
-          className={`transition-transform duration-300 ease-out w-full ${
-            isSwipeOpen ? "transform -translate-x-24" : ""
+          className={`w-full transition-transform duration-300 ease-out ${
+            isSwipeOpen ? "-translate-x-24 transform" : ""
           } ${
             showDivider
-              ? 'after:content-[""] after:block after:mx-6 after:border-t after:border-muted-foreground/20'
+              ? 'after:mx-6 after:block after:border-muted-foreground/20 after:border-t after:content-[""]'
               : ""
           }`}
+          data-note-slug={item.slug}
         >
           {NoteContent}
         </div>
         <SwipeActions
-          isOpen={isSwipeOpen}
-          onPin={() => handleSwipeAction(handlePinAction)}
-          onEdit={() => handleSwipeAction(handleEdit)}
-          onDelete={() => handleSwipeAction(handleDelete)}
-          isPinned={isPinned}
           canEditOrDelete={canEditOrDelete}
+          isOpen={isSwipeOpen}
+          isPinned={isPinned}
+          onDelete={() => handleSwipeAction(handleDelete)}
+          onEdit={() => handleSwipeAction(handleEdit)}
+          onPin={() => handleSwipeAction(handlePinAction)}
         />
       </div>
     );
-  } else {
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger>{NoteContent}</ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={handlePinAction} className="cursor-pointer">
-            {isPinned ? "Unpin" : "Pin"}
-          </ContextMenuItem>
-          {item.session_id === sessionId && (
-            <>
-              <ContextMenuItem onClick={handleEdit} className="cursor-pointer">
-                Edit
-              </ContextMenuItem>
-              <ContextMenuItem
-                onClick={handleDelete}
-                className="cursor-pointer"
-              >
-                Delete
-              </ContextMenuItem>
-            </>
-          )}
-        </ContextMenuContent>
-      </ContextMenu>
-    );
   }
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>{NoteContent}</ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem className="cursor-pointer" onClick={handlePinAction}>
+          {isPinned ? "Unpin" : "Pin"}
+        </ContextMenuItem>
+        {item.sessionId === sessionId && (
+          <>
+            <ContextMenuItem className="cursor-pointer" onClick={handleEdit}>
+              Edit
+            </ContextMenuItem>
+            <ContextMenuItem className="cursor-pointer" onClick={handleDelete}>
+              Delete
+            </ContextMenuItem>
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  );
 });

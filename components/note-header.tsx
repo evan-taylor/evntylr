@@ -1,41 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format, parseISO } from "date-fns";
-import { Input } from "./ui/input";
-import Picker from "@emoji-mart/react";
-import { useMobileDetect } from "./mobile-detector";
-import { ChevronLeft, Lock } from "lucide-react";
+import { format } from "date-fns";
+import { EmojiPicker } from "frimousse";
+import { Lock } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Icons } from "./icons";
 import { getDisplayDateByCategory } from "@/lib/note-utils";
+import type { Note } from "@/lib/types";
+import { Icons } from "./icons";
+import { useMobileDetect } from "./mobile-detector";
+import { Input } from "./ui/input";
+
+type EmojiData = {
+  emoji: string;
+};
 
 export default function NoteHeader({
   note,
   saveNote,
   canEdit,
 }: {
-  note: any;
-  saveNote: (updates: Partial<typeof note>) => void;
+  note: Note;
+  saveNote: (updates: Partial<Note>) => void;
   canEdit: boolean;
 }) {
   const isMobile = useMobileDetect();
   const pathname = usePathname();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [formattedDate, setFormattedDate] = useState("");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const displayDate = getDisplayDateByCategory(note.category, note.id);
-    setFormattedDate(
-      format(displayDate, "MMMM d, yyyy 'at' h:mm a")
-    );
-  }, [note.category, note.id]);
+    const displayDate = getDisplayDateByCategory(note.category, note._id);
+    setFormattedDate(format(displayDate, "MMMM d, yyyy 'at' h:mm a"));
+  }, [note.category, note._id]);
 
-  const handleEmojiSelect = (emojiObject: any) => {
-    const newEmoji = emojiObject.native;
-    saveNote({ emoji: newEmoji });
+  // Handle click outside to close picker
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showEmojiPicker]);
+
+  const handleEmojiSelect = (data: EmojiData) => {
+    saveNote({ emoji: data.emoji });
     setShowEmojiPicker(false);
   };
 
@@ -45,31 +65,32 @@ export default function NoteHeader({
 
   return (
     <>
-      {isMobile && pathname !== "/notes" && (
+      {isMobile === true && pathname !== "/notes" && (
         <Link href="/notes">
-          <button className="pt-2 flex items-center">
+          <button className="flex items-center pt-2" type="button">
             <Icons.back />
-            <span className="text-[#e2a727] text-base ml-1">Notes</span>
+            <span className="ml-1 text-[#e2a727] text-base">Notes</span>
           </button>
         </Link>
       )}
-      <div className="px-2 mb-4 relative">
-        <div className="flex justify-center items-center">
+      <div className="relative mb-4 px-2">
+        <div className="flex items-center justify-center">
           <p className="text-muted-foreground text-xs">{formattedDate}</p>
-          <div className="ml-2 h-6 flex items-center">
+          <div className="ml-2 flex h-6 items-center">
             {!note.public && (
-              <Badge className="text-xs justify-center items-center">
-                <Lock className="w-3 h-3 mr-1" />
+              <Badge className="items-center justify-center text-xs">
+                <Lock className="mr-1 h-3 w-3" />
                 Private
               </Badge>
             )}
           </div>
         </div>
-        <div className="flex items-center relative">
-          {canEdit && !note.public && !isMobile ? (
+        <div className="relative flex items-center">
+          {canEdit === true && note.public === false && isMobile === false ? (
             <button
+              className="mr-2 cursor-pointer"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="cursor-pointer mr-2"
+              type="button"
             >
               {note.emoji}
             </button>
@@ -77,30 +98,70 @@ export default function NoteHeader({
             <span className="mr-2">{note.emoji}</span>
           )}
           {note.public || !canEdit ? (
-            <span className="text-2xl font-bold flex-grow py-2 leading-normal min-h-[50px]">
+            <span className="min-h-[50px] flex-grow py-2 font-bold text-2xl leading-normal">
               {note.title}
             </span>
           ) : (
             <Input
-              id="title"
-              value={note.title}
-              className="bg-background placeholder:text-muted-foreground text-2xl font-bold flex-grow py-2 leading-normal min-h-[50px]"
-              placeholder="Your title here..."
-              onChange={handleTitleChange}
               autoFocus={!note.title}
+              className="min-h-[50px] flex-grow bg-background py-2 font-bold text-2xl leading-normal placeholder:text-muted-foreground"
+              id="title"
+              onChange={handleTitleChange}
+              placeholder="Your title here..."
+              value={note.title ?? ""}
             />
           )}
         </div>
-        {showEmojiPicker && !isMobile && !note.public && canEdit && (
-          <div className="absolute top-full left-0 z-10">
-            <Picker
-              onEmojiSelect={handleEmojiSelect}
-              autoFocus={true}
-              searchPosition="top"
-              onClickOutside={() => setShowEmojiPicker(false)}
-            />
-          </div>
-        )}
+        {showEmojiPicker === true &&
+          isMobile === false &&
+          note.public === false &&
+          canEdit === true && (
+            <div
+              className="absolute top-full left-0 z-10 mt-2 rounded-lg border border-border bg-popover p-2 shadow-lg"
+              ref={pickerRef}
+            >
+              <EmojiPicker.Root
+                className="flex h-[360px] w-fit min-w-[352px] flex-col"
+                onEmojiSelect={handleEmojiSelect}
+              >
+                <EmojiPicker.Search
+                  autoFocus
+                  className="mb-2 h-9 rounded-md border border-input bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+                  placeholder="Search emoji..."
+                />
+                <EmojiPicker.Viewport className="flex-1 overflow-y-auto">
+                  <EmojiPicker.Loading className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                    Loading…
+                  </EmojiPicker.Loading>
+                  <EmojiPicker.Empty className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                    No emoji found.
+                  </EmojiPicker.Empty>
+                  <EmojiPicker.List
+                    className="select-none"
+                    components={{
+                      CategoryHeader: ({ category }) => (
+                        <div className="sticky top-0 bg-popover px-1 py-2 font-medium text-muted-foreground text-xs">
+                          {category.label}
+                        </div>
+                      ),
+                      Row: ({ children }) => (
+                        <div className="flex scroll-my-1">{children}</div>
+                      ),
+                      Emoji: ({ emoji, ...props }) => (
+                        <button
+                          className="flex h-8 w-8 items-center justify-center rounded text-xl transition-colors duration-200 hover:bg-accent"
+                          type="button"
+                          {...props}
+                        >
+                          {emoji.emoji}
+                        </button>
+                      ),
+                    }}
+                  />
+                </EmojiPicker.Viewport>
+              </EmojiPicker.Root>
+            </div>
+          )}
       </div>
     </>
   );

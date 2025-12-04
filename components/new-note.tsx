@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { SessionNotesContext } from "@/app/notes/session-notes";
+import { api } from "@/convex/_generated/api";
+import { createNote } from "@/lib/create-note";
 import { Icons } from "./icons";
 import SessionId from "./session-id";
-import { createNote } from "@/lib/create-note";
-import { SessionNotesContext } from "@/app/notes/session-notes";
 
 export default function NewNote({
   addNewPinnedNote,
@@ -20,19 +22,21 @@ export default function NewNote({
 }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const router = useRouter();
+  const createNoteMutation = useMutation(api.notes.createNote);
 
   const { refreshSessionNotes } = useContext(SessionNotesContext);
 
   const handleCreateNote = useCallback(() => {
     clearSearch();
-    createNote(
+    createNote({
       sessionId,
       router,
       addNewPinnedNote,
       refreshSessionNotes,
       setSelectedNoteSlug,
-      isMobile
-    );
+      isMobile,
+      createNoteMutation,
+    });
   }, [
     sessionId,
     router,
@@ -41,6 +45,7 @@ export default function NewNote({
     refreshSessionNotes,
     setSelectedNoteSlug,
     isMobile,
+    createNoteMutation,
   ]);
 
   useEffect(() => {
@@ -69,9 +74,10 @@ export default function NewNote({
     <div className="flex flex-col items-center justify-center">
       <SessionId setSessionId={setSessionId} />
       <button
-        onClick={handleCreateNote}
         aria-label="Create new note"
-        className={`sm:p-2 hover:bg-muted-foreground/10 rounded-lg ${isMobile ? "p-2" : ""}`}
+        className={`rounded-lg hover:bg-muted-foreground/10 sm:p-2 ${isMobile ? "p-2" : ""}`}
+        onClick={handleCreateNote}
+        type="button"
       >
         <Icons.new />
       </button>

@@ -1,80 +1,47 @@
-import { cache } from "react";
+"use client";
+
+import { useQuery } from "convex/react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Note from "@/components/note";
-import { createClient as createServerClient } from "@/utils/supabase/server";
-import { createClient as createBrowserClient } from "@/utils/supabase/client";
-import { redirect } from "next/navigation";
-import { Metadata } from "next";
-import { Note as NoteType } from "@/lib/types";
+import { api } from "@/convex/_generated/api";
+import type { Note as NoteType } from "@/lib/types";
 
-// Enable ISR with a reasonable revalidation period for public notes
-export const revalidate = 86400; // 24 hours
+const SLUG_REGEX = /^notes\//;
 
-// Cached function to fetch a note by slug - eliminates duplicate fetches
-const getNote = cache(async (slug: string) => {
-  const supabase = createServerClient();
-  const { data: note } = await supabase.rpc("select_note", {
-    note_slug_arg: slug,
-  }).single() as { data: NoteType | null };
-  return note;
-});
+export default function NotePage() {
+  const params = useParams();
+  const router = useRouter();
+  const rawSlug = params.slug as string;
+  const slug = rawSlug.replace(SLUG_REGEX, "");
 
-// Dynamically determine if this is a user note
-export async function generateStaticParams() {
-  const supabase = createBrowserClient();
-  const { data: posts } = await supabase
-    .from("notes")
-    .select("slug")
-    .eq("public", true);
+  const note = useQuery(api.notes.getNoteBySlug, { slug }) as
+    | NoteType
+    | null
+    | undefined;
 
-  return posts!.map(({ slug }) => ({
-    slug,
-  }));
-}
+  useEffect(() => {
+    if (note === null) {
+      router.push("/notes/error");
+    }
+  }, [note, router]);
 
-// Use dynamic rendering for non-public notes
-export const dynamicParams = true;
-
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const slug = params.slug.replace(/^notes\//, '');
-  const note = await getNote(slug);
-
-  if (!note) {
-    return { title: "Note not found" };
+  // Loading state
+  if (note === undefined) {
+    return (
+      <div className="flex min-h-dvh w-full items-center justify-center p-3">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
   }
 
-  const title = note.title || "new note";
-  const emoji = note.emoji || "👋🏼";
-
-  return {
-    title: `alana goyal | ${title}`,
-    openGraph: {
-      images: [
-        `/notes/api/og/?title=${encodeURIComponent(title)}&emoji=${encodeURIComponent(
-          emoji
-        )}`,
-      ],
-    },
-  };
-}
-
-export default async function NotePage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const slug = params.slug.replace(/^notes\//, '');
-  const note = await getNote(slug);
-
-  if (!note) {
-    return redirect("/notes/error");
+  // Not found (redirect handled by useEffect)
+  if (note === null) {
+    return null;
   }
 
   return (
-    <div className="w-full min-h-dvh p-3">
+    <div className="min-h-dvh w-full p-3">
       <Note note={note} />
     </div>
   );

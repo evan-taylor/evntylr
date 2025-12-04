@@ -1,13 +1,30 @@
 "use client";
 
+import { useMutation } from "convex/react";
 import {
-  useEffect,
-  useState,
-  useCallback,
+  ArrowDown,
+  ArrowUp,
+  Moon,
+  PenSquare,
+  Pin,
+  Sun,
+  Trash,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import {
   forwardRef,
-  useImperativeHandle,
+  useCallback,
   useContext,
+  useEffect,
+  useImperativeHandle,
+  useState,
 } from "react";
+import { SessionNotesContext } from "@/app/notes/session-notes";
+import { api } from "@/convex/_generated/api";
+import { createNote } from "@/lib/create-note";
+import { searchNotes } from "@/lib/search";
+import type { Note } from "@/lib/types";
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,17 +34,9 @@ import {
   CommandList,
   CommandShortcut,
 } from "./ui/command";
-import { DialogTitle, DialogDescription } from "./ui/dialog";
-import { useRouter } from "next/navigation";
-import { Pin, ArrowUp, ArrowDown, Trash, PenSquare } from "lucide-react";
-import { createNote } from "@/lib/create-note";
-import { searchNotes } from "@/lib/search";
-import { Note } from "@/lib/types";
-import { SessionNotesContext } from "@/app/notes/session-notes";
-import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { DialogDescription, DialogTitle } from "./ui/dialog";
 
-export interface CommandMenuProps {
+export type CommandMenuProps = {
   notes: Note[];
   sessionId: string;
   addNewPinnedNote: (slug: string) => void;
@@ -35,10 +44,10 @@ export interface CommandMenuProps {
   togglePinned: (slug: string) => void;
   deleteNote: (note: Note) => void;
   highlightedNote: Note | null;
-  ref: React.RefObject<{ setOpen: (open: boolean) => void }>;
+  ref: React.RefObject<{ setOpen: (open: boolean) => void } | null>;
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
-}
+};
 
 export const CommandMenu = forwardRef<
   { setOpen: (open: boolean) => void },
@@ -62,6 +71,8 @@ export const CommandMenu = forwardRef<
     const [searchTerm, setSearchTerm] = useState("");
     const router = useRouter();
     const { setTheme, theme } = useTheme();
+
+    const createNoteMutation = useMutation(api.notes.createNote);
 
     useImperativeHandle(ref, () => ({
       setOpen: (newOpen: boolean) => {
@@ -91,7 +102,7 @@ export const CommandMenu = forwardRef<
       const down = (e: KeyboardEvent) => {
         if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
           e.preventDefault();
-          setOpen((open) => !open);
+          setOpen((currentOpen) => !currentOpen);
         }
       };
       document.addEventListener("keydown", down);
@@ -108,19 +119,20 @@ export const CommandMenu = forwardRef<
     const { refreshSessionNotes } = useContext(SessionNotesContext);
 
     const handleCreateNote = () => {
-      createNote(
+      createNote({
         sessionId,
         router,
         addNewPinnedNote,
         refreshSessionNotes,
         setSelectedNoteSlug,
-        isMobile
-      );
+        isMobile,
+        createNoteMutation,
+      });
       setOpen(false);
     };
 
     const handleNoteSelect = (slug: string) => {
-      router.push(`/notes/${slug}`);
+      router.push(`/${slug}`);
       setOpen(false);
     };
 
@@ -181,7 +193,12 @@ export const CommandMenu = forwardRef<
       },
       {
         name: "Toggle theme",
-        icon: theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />,
+        icon:
+          theme === "light" ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          ),
         shortcut: "T",
         action: () => {
           setTheme(theme === "light" ? "dark" : "light");
@@ -196,15 +213,15 @@ export const CommandMenu = forwardRef<
     );
 
     return (
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog onOpenChange={setOpen} open={open}>
         <DialogTitle className="sr-only">Command Menu</DialogTitle>
         <DialogDescription className="sr-only">
           Use this dialog to execute commands or search for a note
         </DialogDescription>
         <CommandInput
+          onValueChange={setSearchTerm}
           placeholder="Type a command or search for a note..."
           value={searchTerm}
-          onValueChange={setSearchTerm}
         />
         <CommandList>
           <CommandEmpty>No results found</CommandEmpty>
@@ -223,10 +240,10 @@ export const CommandMenu = forwardRef<
             <CommandGroup heading="Notes">
               {filteredNotes.map((note) => (
                 <CommandItem
-                  key={note.id}
+                  key={note._id}
                   onSelect={() => handleNoteSelect(note.slug)}
                 >
-                  {note.emoji} {toTitleCase(note.title)}
+                  {note.emoji} {toTitleCase(note.title ?? "")}
                 </CommandItem>
               ))}
             </CommandGroup>

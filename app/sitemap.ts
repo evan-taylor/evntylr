@@ -1,29 +1,34 @@
-import { createClient } from '@/utils/supabase/server'
-import { MetadataRoute } from 'next'
+import { ConvexHttpClient } from "convex/browser";
+import type { MetadataRoute } from "next";
+import { api } from "@/convex/_generated/api";
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error("NEXT_PUBLIC_CONVEX_URL is not set");
+}
+const convex = new ConvexHttpClient(convexUrl);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const supabase = createClient();
+  const notes = await convex.query(api.notes.getPublicNotes);
 
-    const { data: notes } = await supabase
-        .from('notes')
-        .select('slug, created_at')
-        .eq('public', true)
-        .order('created_at', { ascending: false });
+  const notesUrls =
+    notes?.map((note) => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/${note.slug}`,
+      lastModified: new Date(note._creationTime),
+    })) ?? [];
 
-    const notesUrls = notes?.map((note) => ({
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/notes/${note.slug}`,
-        lastModified: new Date(note.created_at),
-    })) || [];
-
-    return [
-        {
-            url: process.env.NEXT_PUBLIC_SITE_URL!,
-            lastModified: new Date(),
-        },
-        {
-            url: `${process.env.NEXT_PUBLIC_SITE_URL}/notes`,
-            lastModified: new Date(),
-        },
-        ...notesUrls
-    ]
+  return [
+    {
+      url: process.env.NEXT_PUBLIC_SITE_URL ?? "",
+      lastModified: new Date(),
+    },
+    {
+      url: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/notes`,
+      lastModified: new Date(),
+    },
+    ...notesUrls,
+  ];
 }
+
+// Revalidate the sitemap every hour
+export const revalidate = 3600;

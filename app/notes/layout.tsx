@@ -1,11 +1,11 @@
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
-import { cn } from "@/lib/utils";
-import { siteConfig } from "@/config/site";
-import { createClient } from "@/utils/supabase/server";
+import { ConvexClientProvider } from "@/components/convex-provider";
 import SidebarLayout from "@/components/sidebar-layout";
-import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const fontSans = FontSans({
@@ -19,48 +19,39 @@ export const metadata: Metadata = {
   description: siteConfig.title,
 };
 
-export const revalidate = 86400; // 24 hours
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = createClient();
-  const { data: notes } = await supabase
-    .from("notes")
-    .select("*")
-    .eq("public", true);
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <title>{siteConfig.title}</title>
-        <meta property="twitter:card" content="summary_large_image"></meta>
-        <meta property="twitter:title" content={siteConfig.title}></meta>
-        <meta
-          property="twitter:description"
-          content={siteConfig.title}
-        ></meta>
-        <meta property="og:site_name" content={siteConfig.title}></meta>
-        <meta property="og:description" content={siteConfig.title}></meta>
-        <meta property="og:title" content={siteConfig.title}></meta>
-        <meta property="og:url" content={siteConfig.url}></meta>
+        <meta content="summary_large_image" property="twitter:card" />
+        <meta content={siteConfig.title} property="twitter:title" />
+        <meta content={siteConfig.title} property="twitter:description" />
+        <meta content={siteConfig.title} property="og:site_name" />
+        <meta content={siteConfig.title} property="og:description" />
+        <meta content={siteConfig.title} property="og:title" />
+        <meta content={siteConfig.url} property="og:url" />
       </head>
       <body
         className={cn("min-h-dvh font-sans antialiased", fontSans.variable)}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SidebarLayout notes={notes}>
-            <Analytics />
-            {children}
-          </SidebarLayout>
-        </ThemeProvider>
+        <ConvexClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            disableTransitionOnChange
+            enableSystem
+          >
+            <SidebarLayout>
+              <Analytics />
+              {children}
+            </SidebarLayout>
+          </ThemeProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

@@ -1,9 +1,9 @@
-import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
+import type { Note } from "@/lib/types";
 import { NoteItem } from "./note-item";
-import { Note } from "@/lib/types";
 
-interface SidebarContentProps {
+type SidebarContentProps = {
   groupedNotes: Record<string, Note[]>;
   selectedNoteSlug: string | null;
   onNoteSelect: (note: Note) => void;
@@ -19,7 +19,7 @@ interface SidebarContentProps {
   setOpenSwipeItemSlug: React.Dispatch<React.SetStateAction<string | null>>;
   clearSearch: () => void;
   setSelectedNoteSlug: (slug: string | null) => void;
-}
+};
 
 export function SidebarContent({
   groupedNotes,
@@ -51,7 +51,7 @@ export function SidebarContent({
   const handleEdit = useCallback(
     (slug: string) => {
       clearSearch();
-      router.push(`/notes/${slug}`);
+      router.push(`/${slug}`);
       setSelectedNoteSlug(slug);
     },
     [clearSearch, router, setSelectedNoteSlug]
@@ -65,67 +65,78 @@ export function SidebarContent({
     [clearSearch, handleNoteDelete]
   );
 
-  return (
-    <div className="py-2">
-      {localSearchResults === null ? (
-        <nav>
-          {categoryOrder.map((categoryKey) =>
-            groupedNotes[categoryKey] &&
-            groupedNotes[categoryKey].length > 0 ? (
-              <section key={categoryKey}>
-                <h3 className="py-1 text-xs font-bold text-muted-foreground ml-2">
-                  {labels[categoryKey as keyof typeof labels]}
-                </h3>
-                <ul>
-                  {groupedNotes[categoryKey].map(
-                    (item: Note, index: number) => (
-                      <NoteItem
-                        key={index}
-                        item={item}
-                        selectedNoteSlug={selectedNoteSlug}
-                        sessionId={sessionId}
-                        onNoteSelect={onNoteSelect}
-                        handlePinToggle={handlePinToggle}
-                        isPinned={pinnedNotes.has(item.slug)}
-                        isHighlighted={false}
-                        isSearching={false}
-                        handleNoteDelete={handleNoteDelete}
-                        onNoteEdit={handleEdit}
-                        openSwipeItemSlug={openSwipeItemSlug}
-                        setOpenSwipeItemSlug={setOpenSwipeItemSlug}
-                        showDivider={index < groupedNotes[categoryKey].length - 1}
-                      />
-                    )
-                  )}
-                </ul>
-              </section>
-            ) : null
-          )}
-        </nav>
-      ) : localSearchResults.length > 0 ? (
+  const renderCategoryList = () => (
+    <nav>
+      {categoryOrder.map((categoryKey) => {
+        const categoryNotes = groupedNotes[categoryKey];
+        if (!categoryNotes || categoryNotes.length === 0) {
+          return null;
+        }
+        return (
+          <section key={categoryKey}>
+            <h3 className="ml-2 py-1 font-bold text-muted-foreground text-xs">
+              {labels[categoryKey as keyof typeof labels]}
+            </h3>
+            <ul>
+              {categoryNotes.map((item: Note, index: number) => (
+                <NoteItem
+                  handleNoteDelete={handleNoteDelete}
+                  handlePinToggle={handlePinToggle}
+                  isHighlighted={false}
+                  isPinned={pinnedNotes.has(item.slug)}
+                  isSearching={false}
+                  item={item}
+                  key={item._id}
+                  onNoteEdit={handleEdit}
+                  onNoteSelect={onNoteSelect}
+                  openSwipeItemSlug={openSwipeItemSlug}
+                  selectedNoteSlug={selectedNoteSlug}
+                  sessionId={sessionId}
+                  setOpenSwipeItemSlug={setOpenSwipeItemSlug}
+                  showDivider={index < categoryNotes.length - 1}
+                />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </nav>
+  );
+
+  const renderSearchResults = () => {
+    if (localSearchResults === null) {
+      return renderCategoryList();
+    }
+    if (localSearchResults.length > 0) {
+      return (
         <ul>
           {localSearchResults.map((item: Note, index: number) => (
             <NoteItem
-              key={item.id}
+              handleNoteDelete={handleDelete}
+              handlePinToggle={handlePinToggleWithClear}
+              isHighlighted={index === highlightedIndex}
+              isPinned={pinnedNotes.has(item.slug)}
+              isSearching={true}
               item={item}
+              key={item._id}
+              onNoteEdit={handleEdit}
+              onNoteSelect={onNoteSelect}
+              openSwipeItemSlug={openSwipeItemSlug}
               selectedNoteSlug={selectedNoteSlug}
               sessionId={sessionId}
-              onNoteSelect={onNoteSelect}
-              handlePinToggle={handlePinToggleWithClear}
-              isPinned={pinnedNotes.has(item.slug)}
-              isHighlighted={index === highlightedIndex}
-              isSearching={true}
-              handleNoteDelete={handleDelete}
-              onNoteEdit={handleEdit}
-              openSwipeItemSlug={openSwipeItemSlug}
               setOpenSwipeItemSlug={setOpenSwipeItemSlug}
               showDivider={index < localSearchResults.length - 1}
             />
           ))}
         </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground px-2 mt-4">No results found</p>
-      )}
-    </div>
-  );
+      );
+    }
+    return (
+      <p className="mt-4 px-2 text-muted-foreground text-sm">
+        No results found
+      </p>
+    );
+  };
+
+  return <div className="py-2">{renderSearchResults()}</div>;
 }

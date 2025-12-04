@@ -1,33 +1,37 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
+import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
-import NoteHeader from "./note-header";
-import NoteContent from "./note-content";
-import SessionId from "./session-id";
-import { useState, useCallback, useRef, useContext } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import { SessionNotesContext } from "@/app/notes/session-notes";
+import { api } from "@/convex/_generated/api";
+import type { Note as NoteType } from "@/lib/types";
+import NoteContent from "./note-content";
+import NoteHeader from "./note-header";
+import SessionId from "./session-id";
 
-export default function Note({ note: initialNote }: { note: any }) {
-  const supabase = createClient();
+export default function Note({ note: initialNote }: { note: NoteType }) {
   const router = useRouter();
   const [note, setNote] = useState(initialNote);
   const [sessionId, setSessionId] = useState("");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingUpdatesRef = useRef<Partial<typeof note>>({});
+  const pendingUpdatesRef = useRef<Partial<NoteType>>({});
   const noteRef = useRef(initialNote);
 
   const { refreshSessionNotes } = useContext(SessionNotesContext);
 
+  // Convex mutations
+  const updateNoteMutation = useMutation(api.notes.updateNote);
+
   const saveNote = useCallback(
-    async (updates: Partial<typeof note>) => {
+    (updates: Partial<NoteType>) => {
       // Clear existing timeout
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
 
       // Update local state immediately (optimistic update)
-      setNote((prevNote: typeof note) => {
+      setNote((prevNote: NoteType) => {
         const updatedNote = { ...prevNote, ...updates };
         noteRef.current = updatedNote;
         return updatedNote;
@@ -37,77 +41,47 @@ export default function Note({ note: initialNote }: { note: any }) {
       pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
 
       // Set new timeout to batch save all pending updates
-      saveTimeoutRef.current = setTimeout(async () => {
-        try {
-          if (noteRef.current.id && sessionId && Object.keys(pendingUpdatesRef.current).length > 0) {
-            const updatesToSave = pendingUpdatesRef.current;
-            const currentNote = noteRef.current;
+      saveTimeoutRef.current = setTimeout(() => {
+        if (
+          noteRef.current.slug &&
+          sessionId &&
+          Object.keys(pendingUpdatesRef.current).length > 0
+        ) {
+          const updatesToSave = pendingUpdatesRef.current;
+          const currentNote = noteRef.current;
 
-            // Clear pending updates before making calls
-            pendingUpdatesRef.current = {};
+          // Clear pending updates before making calls
+          pendingUpdatesRef.current = {};
 
-            // Make RPC calls only for fields that were actually updated
-            // This prevents overwriting unchanged fields with stale data
-            const promises = [];
-
-            if ('title' in updatesToSave) {
-              promises.push(
-                supabase.rpc("update_note_title", {
-                  uuid_arg: currentNote.id,
-                  session_arg: sessionId,
-                  title_arg: updatesToSave.title,
-                })
-              );
-            }
-            if ('emoji' in updatesToSave) {
-              promises.push(
-                supabase.rpc("update_note_emoji", {
-                  uuid_arg: currentNote.id,
-                  session_arg: sessionId,
-                  emoji_arg: updatesToSave.emoji,
-                })
-              );
-            }
-            if ('content' in updatesToSave) {
-              promises.push(
-                supabase.rpc("update_note_content", {
-                  uuid_arg: currentNote.id,
-                  session_arg: sessionId,
-                  content_arg: updatesToSave.content,
-                })
-              );
-            }
-
-            // Execute all updates in parallel for efficiency
-            await Promise.all(promises);
-
-            // Revalidate and refresh after all updates
-            await fetch("/notes/revalidate", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-revalidate-token": process.env.NEXT_PUBLIC_REVALIDATE_TOKEN || '',
-              },
-              body: JSON.stringify({ slug: currentNote.slug }),
+          // Use single mutation to update all fields
+          updateNoteMutation({
+            slug: currentNote.slug,
+            sessionId,
+            title: updatesToSave.title,
+            emoji: updatesToSave.emoji,
+            content: updatesToSave.content,
+          })
+            .then(() => {
+              // Refresh session notes (Convex will auto-update due to reactivity)
+              refreshSessionNotes();
+              router.refresh();
+            })
+            .catch((error) => {
+              console.error("Save failed:", error);
             });
-            refreshSessionNotes();
-            router.refresh();
-          }
-        } catch (error) {
-          console.error("Save failed:", error);
         }
       }, 500);
     },
-    [supabase, router, refreshSessionNotes, sessionId]
+    [router, refreshSessionNotes, sessionId, updateNoteMutation]
   );
 
-  const canEdit = sessionId === note.session_id;
+  const canEdit = sessionId === note.sessionId;
 
   return (
     <div className="h-full overflow-y-auto bg-background">
       <SessionId setSessionId={setSessionId} />
-      <NoteHeader note={note} saveNote={saveNote} canEdit={canEdit} />
-      <NoteContent note={note} saveNote={saveNote} canEdit={canEdit} />
+      <NoteHeader canEdit={canEdit} note={note} saveNote={saveNote} />
+      <NoteContent canEdit={canEdit} note={note} saveNote={saveNote} />
     </div>
   );
 }

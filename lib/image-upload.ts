@@ -1,12 +1,14 @@
-import { createClient } from "@/utils/supabase/client";
-
-export interface ImageUploadResult {
+export type ImageUploadResult = {
   success: boolean;
   url?: string;
+  storageId?: string;
   error?: string;
-}
+};
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Top-level regex for file extension replacement
+const FILE_EXTENSION_REGEX = /\.[^.]+$/;
 
 /**
  * Compress an image file using Canvas API
@@ -14,10 +16,10 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
  * @param maxSize - Maximum file size in bytes
  * @returns Compressed file or original if already small enough
  */
-async function compressImage(file: File, maxSize: number): Promise<File> {
+function compressImage(file: File, maxSize: number): Promise<File> {
   // If already under limit, return as-is
   if (file.size <= maxSize) {
-    return file;
+    return Promise.resolve(file);
   }
 
   return new Promise((resolve, reject) => {
@@ -25,7 +27,7 @@ async function compressImage(file: File, maxSize: number): Promise<File> {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
-    img.onload = async () => {
+    img.onload = () => {
       if (!ctx) {
         reject(new Error("Failed to get canvas context"));
         return;
@@ -50,58 +52,85 @@ async function compressImage(file: File, maxSize: number): Promise<File> {
       // Try different quality levels to get under the size limit
       const qualities = [0.8, 0.6, 0.4, 0.3, 0.2];
 
-      for (const quality of qualities) {
-        const blob = await new Promise<Blob | null>((res) =>
-          canvas.toBlob(res, "image/jpeg", quality)
-        );
-
-        if (blob && blob.size <= maxSize) {
-          const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
-            type: "image/jpeg",
-            lastModified: Date.now(),
-          });
-          resolve(compressedFile);
+      const tryCompress = (qualityIndex: number): void => {
+        if (qualityIndex >= qualities.length) {
+          // Try scaling down if quality reduction wasn't enough
+          tryScale(0, width, height);
           return;
         }
-      }
 
-      // If still too large after compression, scale down further
+        canvas.toBlob(
+          (blob) => {
+            if (blob && blob.size <= maxSize) {
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(FILE_EXTENSION_REGEX, ".jpg"),
+                { type: "image/jpeg", lastModified: Date.now() }
+              );
+              resolve(compressedFile);
+            } else {
+              tryCompress(qualityIndex + 1);
+            }
+          },
+          "image/jpeg",
+          qualities[qualityIndex]
+        );
+      };
+
       const scaleFactors = [0.75, 0.5, 0.25];
-      for (const scale of scaleFactors) {
-        const scaledWidth = Math.round(width * scale);
-        const scaledHeight = Math.round(height * scale);
+
+      const tryScale = (
+        scaleIndex: number,
+        origWidth: number,
+        origHeight: number
+      ): void => {
+        if (scaleIndex >= scaleFactors.length) {
+          // Last resort: return smallest attempt
+          canvas.toBlob(
+            (finalBlob) => {
+              if (finalBlob) {
+                const compressedFile = new File(
+                  [finalBlob],
+                  file.name.replace(FILE_EXTENSION_REGEX, ".jpg"),
+                  { type: "image/jpeg", lastModified: Date.now() }
+                );
+                resolve(compressedFile);
+              } else {
+                reject(new Error("Failed to compress image"));
+              }
+            },
+            "image/jpeg",
+            0.5
+          );
+          return;
+        }
+
+        const scale = scaleFactors[scaleIndex];
+        const scaledWidth = Math.round(origWidth * scale);
+        const scaledHeight = Math.round(origHeight * scale);
         canvas.width = scaledWidth;
         canvas.height = scaledHeight;
         ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
 
-        const blob = await new Promise<Blob | null>((res) =>
-          canvas.toBlob(res, "image/jpeg", 0.7)
+        canvas.toBlob(
+          (blob) => {
+            if (blob && blob.size <= maxSize) {
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(FILE_EXTENSION_REGEX, ".jpg"),
+                { type: "image/jpeg", lastModified: Date.now() }
+              );
+              resolve(compressedFile);
+            } else {
+              tryScale(scaleIndex + 1, origWidth, origHeight);
+            }
+          },
+          "image/jpeg",
+          0.7
         );
+      };
 
-        if (blob && blob.size <= maxSize) {
-          const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
-            type: "image/jpeg",
-            lastModified: Date.now(),
-          });
-          resolve(compressedFile);
-          return;
-        }
-      }
-
-      // Last resort: return smallest attempt
-      const finalBlob = await new Promise<Blob | null>((res) =>
-        canvas.toBlob(res, "image/jpeg", 0.5)
-      );
-
-      if (finalBlob) {
-        const compressedFile = new File([finalBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
-          type: "image/jpeg",
-          lastModified: Date.now(),
-        });
-        resolve(compressedFile);
-      } else {
-        reject(new Error("Failed to compress image"));
-      }
+      tryCompress(0);
     };
 
     img.onerror = () => reject(new Error("Failed to load image"));
@@ -110,23 +139,39 @@ async function compressImage(file: File, maxSize: number): Promise<File> {
 }
 
 /**
- * Upload an image file to Supabase Storage
+ * Validate an image file
+ * @param file - The image file to validate
+ * @returns Error message if invalid, null if valid
+ */
+function validateImageFile(file: File): string | null {
+  const validTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+  if (!validTypes.includes(file.type)) {
+    return "Invalid file type. Only JPEG, PNG, GIF, and WebP images are supported.";
+  }
+  return null;
+}
+
+/**
+ * Upload an image file to Convex storage
  * @param file - The image file to upload
- * @param noteId - The ID of the note this image belongs to
+ * @param generateUploadUrl - Function to generate Convex upload URL
  * @returns Result object with success status and URL or error
  */
 export async function uploadNoteImage(
   file: File,
-  noteId: string
+  generateUploadUrl: () => Promise<string>
 ): Promise<ImageUploadResult> {
   try {
     // Validate file type
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      return {
-        success: false,
-        error: "Invalid file type. Only JPEG, PNG, GIF, and WebP images are supported.",
-      };
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      return { success: false, error: validationError };
     }
 
     // Compress image if over size limit
@@ -142,39 +187,37 @@ export async function uploadNoteImage(
       }
     }
 
-    const supabase = createClient();
+    // Get upload URL from Convex
+    const uploadUrl = await generateUploadUrl();
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const fileExt = fileToUpload.name.split(".").pop() || "png";
-    const fileName = `${noteId}/${timestamp}-${randomString}.${fileExt}`;
+    // Upload the file to Convex storage
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": fileToUpload.type },
+      body: fileToUpload,
+    });
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from("note-images")
-      .upload(fileName, fileToUpload, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Upload error:", error);
+    if (!response.ok) {
       return {
         success: false,
-        error: `Upload failed: ${error.message}`,
+        error: `Upload failed: ${response.statusText}`,
       };
     }
 
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("note-images").getPublicUrl(data.path);
+    const { storageId } = (await response.json()) as { storageId: string };
 
-    return {
-      success: true,
-      url: publicUrl,
-    };
+    // Construct the URL from the storage ID
+    // Convex storage URLs follow a predictable pattern
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      return { success: false, error: "Convex URL not configured" };
+    }
+
+    // Extract the deployment URL and construct the storage URL
+    // Convex storage URLs are: https://<deployment>.convex.cloud/api/storage/<storageId>
+    const url = `${convexUrl.replace(".cloud/", ".site/")}/api/storage/${storageId}`;
+
+    return { success: true, url, storageId };
   } catch (error) {
     console.error("Unexpected error during upload:", error);
     return {
@@ -189,14 +232,13 @@ export async function uploadNoteImage(
  * @param event - The clipboard event
  * @returns Image file if found, null otherwise
  */
-export function getImageFromClipboard(
-  event: ClipboardEvent
-): File | null {
+export function getImageFromClipboard(event: ClipboardEvent): File | null {
   const items = event.clipboardData?.items;
-  if (!items) return null;
+  if (!items) {
+    return null;
+  }
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+  for (const item of Array.from(items)) {
     if (item.type.indexOf("image") !== -1) {
       return item.getAsFile();
     }
@@ -214,14 +256,15 @@ export function getImageFromClipboard(
 export function insertImageMarkdown(
   textarea: HTMLTextAreaElement,
   imageUrl: string,
-  altText: string = "image"
+  altText = "image"
 ): void {
   const cursorPos = textarea.selectionStart;
   const textBefore = textarea.value.substring(0, cursorPos);
   const textAfter = textarea.value.substring(cursorPos);
 
   // Add newlines if not at start of line
-  const needsNewlineBefore = textBefore.length > 0 && !textBefore.endsWith("\n");
+  const needsNewlineBefore =
+    textBefore.length > 0 && !textBefore.endsWith("\n");
   const needsNewlineAfter = textAfter.length > 0 && !textAfter.startsWith("\n");
 
   const imageMarkdown = `${needsNewlineBefore ? "\n" : ""}![${altText}](${imageUrl})${needsNewlineAfter ? "\n" : ""}`;
