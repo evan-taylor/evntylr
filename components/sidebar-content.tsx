@@ -82,7 +82,7 @@ export function SidebarContent({
   );
 
   const renderCategoryList = () => (
-    <nav>
+    <nav className="px-2">
       {categoryOrder.map((categoryKey) => {
         const categoryNotes = groupedNotes[categoryKey];
         if (!categoryNotes || categoryNotes.length === 0) {
@@ -90,7 +90,7 @@ export function SidebarContent({
         }
         return (
           <section key={categoryKey}>
-            <h3 className="mt-4 mb-1 ml-5 font-bold text-muted-foreground text-sm tracking-tight">
+            <h3 className="mt-4 mb-1 ml-4 font-bold text-muted-foreground text-sm tracking-tight">
               {labels[categoryKey as keyof typeof labels]}
             </h3>
             <ul>
@@ -125,7 +125,7 @@ export function SidebarContent({
     }
     if (localSearchResults.length > 0) {
       return (
-        <ul>
+        <ul className="px-2">
           {localSearchResults.map((item: Note, index: number) => (
             <NoteItem
               handleNoteDelete={handleDelete}

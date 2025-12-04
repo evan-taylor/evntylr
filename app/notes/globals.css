@@ -101,6 +101,49 @@
   caret-color: #e2a727;
 }
 
+/* Note Selection States - Apple Notes inspired */
+/* Default state: gray (when editor is focused) */
+.note-selected {
+  background-color: #e8e8e8;
+}
+
+.dark .note-selected {
+  background-color: #464646;
+}
+
+.note-selected-title {
+  color: black;
+}
+
+.dark .note-selected-title {
+  color: white;
+}
+
+.note-selected-preview {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.dark .note-selected-preview {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.note-selected-date {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.dark .note-selected-date {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Active state: yellow/gold (when sidebar is focused) */
+.sidebar-container:focus-within .note-selected {
+  background-color: #ffe391;
+}
+
+.dark .sidebar-container:focus-within .note-selected {
+  background-color: #9c8228;
+}
+
 /* Liquid Glass Design System - Apple Notes Inspired */
 @layer utilities {
   /* Glass morphism effect */

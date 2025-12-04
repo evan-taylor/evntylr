@@ -607,10 +607,10 @@ export default function Sidebar({
       className={`${
         isMobile
           ? "w-full max-w-full"
-          : "w-[320px] border-border/50 border-r dark:bg-[#202121]"
-      } flex h-dvh flex-col bg-white dark:bg-[#202121]`}
+          : "w-[270px] border-border/50 border-r dark:bg-[#202121]"
+      } sidebar-container flex h-dvh flex-col bg-white dark:bg-[#202121]`}
     >
-      <div className={`${isMobile ? "w-full" : "w-[320px]"}`}>
+      <div className={`${isMobile ? "w-full" : "w-[270px]"}`}>
         <Nav
           addNewPinnedNote={handlePinToggle}
           clearSearch={clearSearch}
@@ -645,7 +645,7 @@ export default function Sidebar({
             togglePinned={handlePinToggle}
             unpinnedPublicNotes={unpinnedPublicNotes}
           />
-          <div className={`${isMobile ? "w-full" : "w-[320px]"} px-2`}>
+          <div className={`${isMobile ? "w-full" : "w-[270px]"} px-2`}>
             <SearchBar
               clearSearch={clearSearch}
               inputRef={searchInputRef}

@@ -148,14 +148,14 @@ export const NoteItem = React.memo(function NoteItemComponent({
   const displayDivider = shouldShowDivider(itemState, showDivider);
 
   const selectedClass = isSelected
-    ? "rounded-lg bg-[#FFE391] dark:bg-[#464646] mx-2 my-0.5"
+    ? "note-selected rounded-lg mx-2 my-0.5"
     : "mx-2 my-0.5 liquid-transition";
   const dividerClass =
     displayDivider && !isSelected
       ? 'after:mx-4 after:block after:border-[#3A3A3A]/30 after:border-t after:content-[""] dark:after:border-[#3A3A3A]'
       : "";
   const previewClass = isSelected
-    ? "text-black/60 dark:text-white/60"
+    ? "note-selected-preview"
     : "text-muted-foreground";
 
   const NoteContent = (
@@ -168,7 +168,7 @@ export const NoteItem = React.memo(function NoteItemComponent({
           tabIndex={-1}
         >
           <h2
-            className={`line-clamp-1 break-words px-2 font-semibold text-sm ${isSelected ? "text-black dark:text-white" : ""}`}
+            className={`line-clamp-1 break-words px-2 font-semibold text-sm ${isSelected ? "note-selected-title" : ""}`}
           >
             {item.emoji} {item.title}
           </h2>
@@ -178,7 +178,7 @@ export const NoteItem = React.memo(function NoteItemComponent({
             <span
               className={
                 isSelected
-                  ? "font-medium text-black/60 dark:text-white/60"
+                  ? "note-selected-date font-medium"
                   : "font-medium text-muted-foreground"
               }
             >
