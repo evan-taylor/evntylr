@@ -15,7 +15,7 @@ export default function NewNote({
   setSelectedNoteSlug,
   isMobile,
 }: {
-  addNewPinnedNote: (slug: string) => void;
+  addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   clearSearch: () => void;
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;

@@ -7,7 +7,7 @@ type CreateNoteMutation = (args: CreateNoteInput) => Promise<string>;
 type CreateNoteOptions = {
   sessionId: string | null;
   router: { push: (path: string) => void; refresh: () => void };
-  addNewPinnedNote: (slug: string) => void;
+  addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   refreshSessionNotes: () => Promise<void>;
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
@@ -53,7 +53,7 @@ export async function createNote(options: CreateNoteOptions) {
       }
       router.push(`/${slug}`);
     } else {
-      addNewPinnedNote(slug);
+      addNewPinnedNote(slug, false);
       refreshSessionNotes().then(() => {
         setSelectedNoteSlug(slug);
         router.push(`/${slug}`);

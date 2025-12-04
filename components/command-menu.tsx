@@ -39,14 +39,15 @@ import { DialogDescription, DialogTitle } from "./ui/dialog";
 export type CommandMenuProps = {
   notes: Note[];
   sessionId: string;
-  addNewPinnedNote: (slug: string) => void;
+  addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   navigateNotes: (direction: "up" | "down") => void;
-  togglePinned: (slug: string) => void;
+  togglePinned: (slug: string, isCurrentlyPinned: boolean) => void;
   deleteNote: (note: Note) => void;
   highlightedNote: Note | null;
   ref: React.RefObject<{ setOpen: (open: boolean) => void } | null>;
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
+  pinnedNotes: Set<string>;
 };
 
 export const CommandMenu = forwardRef<
@@ -64,6 +65,7 @@ export const CommandMenu = forwardRef<
       highlightedNote,
       setSelectedNoteSlug,
       isMobile,
+      pinnedNotes,
     },
     ref
   ) => {
@@ -148,10 +150,13 @@ export const CommandMenu = forwardRef<
 
     const handleTogglePin = useCallback(() => {
       if (highlightedNote) {
-        togglePinned(highlightedNote.slug);
+        const isCurrentlyPinned =
+          highlightedNote.pinned === true ||
+          pinnedNotes.has(highlightedNote.slug);
+        togglePinned(highlightedNote.slug, isCurrentlyPinned);
         setOpen(false);
       }
-    }, [highlightedNote, togglePinned]);
+    }, [highlightedNote, togglePinned, pinnedNotes]);
 
     const handleDeleteNote = useCallback(() => {
       if (highlightedNote) {
