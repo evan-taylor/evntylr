@@ -76,7 +76,7 @@ export default function NotePage() {
       return;
     }
 
-    document.title = `${note.title} | ${siteConfig.title}`;
+    document.title = `${siteConfig.title} | ${note.title}`;
 
     const description = note.content
       ? note.content.substring(0, 155)
