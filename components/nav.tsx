@@ -1,7 +1,7 @@
 import NewNote from "./new-note";
 
 type NavProps = {
-  addNewPinnedNote: (slug: string) => void;
+  addNewPinnedNote: (slug: string, isCurrentlyPinned: boolean) => void;
   clearSearch: () => void;
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;

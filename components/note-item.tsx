@@ -68,7 +68,7 @@ type NoteItemProps = {
   sessionId: string;
   onNoteSelect: (note: Note) => void;
   onNoteEdit: (slug: string) => void;
-  handlePinToggle: (slug: string) => void;
+  handlePinToggle: (slug: string, isCurrentlyPinned: boolean) => void;
   isPinned: boolean;
   isHighlighted: boolean;
   isSearching: boolean;
@@ -124,7 +124,7 @@ export const NoteItem = React.memo(function NoteItemComponent({
   };
 
   const handlePinAction = () => {
-    handlePinToggle(item.slug);
+    handlePinToggle(item.slug, isPinned);
     setOpenSwipeItemSlug(null);
   };
 

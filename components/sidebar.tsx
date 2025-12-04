@@ -329,11 +329,10 @@ export default function Sidebar({
   );
 
   const handlePinToggle = useCallback(
-    (slug: string) => {
-      let isPinning = false;
+    (slug: string, isCurrentlyPinned: boolean) => {
+      const isPinning = !isCurrentlyPinned;
       setPinnedNotes((prev) => {
         const newPinned = new Set(prev);
-        isPinning = !newPinned.has(slug);
         if (isPinning) {
           newPinned.add(slug);
         } else {
@@ -443,7 +442,13 @@ export default function Sidebar({
       ArrowDown: () => navigateNotes("down"),
       k: () => navigateNotes("up"),
       ArrowUp: () => navigateNotes("up"),
-      p: () => highlightedNote && handlePinToggle(highlightedNote.slug),
+      p: () =>
+        highlightedNote &&
+        handlePinToggle(
+          highlightedNote.slug,
+          highlightedNote.pinned === true ||
+            pinnedNotes.has(highlightedNote.slug)
+        ),
       d: () => highlightedNote && handleNoteDelete(highlightedNote),
       "/": () => searchInputRef.current?.focus(),
       Escape: () => (document.activeElement as HTMLElement)?.blur(),
@@ -498,6 +503,7 @@ export default function Sidebar({
     goToHighlightedNote,
     setTheme,
     theme,
+    pinnedNotes,
   ]);
 
   const handleNoteSelect = useCallback(
@@ -550,6 +556,7 @@ export default function Sidebar({
             isMobile={isMobile}
             navigateNotes={navigateNotes}
             notes={notes}
+            pinnedNotes={pinnedNotes}
             sessionId={sessionId}
             setSelectedNoteSlug={setSelectedNoteSlug}
             togglePinned={handlePinToggle}

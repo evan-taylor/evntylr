@@ -8,7 +8,7 @@ type SidebarContentProps = {
   selectedNoteSlug: string | null;
   onNoteSelect: (note: Note) => void;
   sessionId: string;
-  handlePinToggle: (slug: string) => void;
+  handlePinToggle: (slug: string, isCurrentlyPinned: boolean) => void;
   pinnedNotes: Set<string>;
   localSearchResults: Note[] | null;
   highlightedIndex: number;
@@ -41,9 +41,9 @@ export function SidebarContent({
   const router = useRouter();
 
   const handlePinToggleWithClear = useCallback(
-    (slug: string) => {
+    (slug: string, isCurrentlyPinned: boolean) => {
       clearSearch();
-      handlePinToggle(slug);
+      handlePinToggle(slug, isCurrentlyPinned);
     },
     [clearSearch, handlePinToggle]
   );
