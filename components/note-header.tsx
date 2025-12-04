@@ -39,7 +39,9 @@ export default function NoteHeader({
 
   // Handle click outside to close picker
   useEffect(() => {
-    if (!showEmojiPicker) return;
+    if (!showEmojiPicker) {
+      return;
+    }
 
     const handleClickOutside = (event: MouseEvent) => {
       if (

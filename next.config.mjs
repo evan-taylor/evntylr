@@ -12,7 +12,7 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Redirect root to notes list
+      // Redirect root to notes list (will then auto-redirect to first pinned note)
       {
         source: "/",
         destination: "/notes",

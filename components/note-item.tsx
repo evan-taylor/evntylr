@@ -158,7 +158,9 @@ export const NoteItem = React.memo(function NoteItemComponent({
     : "text-muted-foreground";
 
   const NoteContent = (
-    <li className={`h-[70px] w-full ${selectedClass} ${dividerClass}`}>
+    <li
+      className={`h-[70px] w-full transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] ${selectedClass} ${dividerClass}`}
+    >
       <div className={"h-full w-full px-4"} data-note-slug={item.slug}>
         <Link
           className="block flex h-full w-full flex-col justify-center py-2"

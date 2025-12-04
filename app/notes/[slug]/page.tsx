@@ -11,6 +11,45 @@ import type { Note as NoteType } from "@/lib/types";
 
 const SLUG_REGEX = /^notes\//;
 
+// Helper functions to reduce cognitive complexity
+function updateMetaDescription(description: string) {
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute("content", description);
+  } else {
+    const meta = document.createElement("meta");
+    meta.name = "description";
+    meta.content = description;
+    document.head.appendChild(meta);
+  }
+}
+
+function updateCanonicalUrl(url: string) {
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) {
+    canonical.setAttribute("href", url);
+  } else {
+    canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    canonical.setAttribute("href", url);
+    document.head.appendChild(canonical);
+  }
+}
+
+function updateStructuredData(schema: object) {
+  let structuredData = document.querySelector(
+    'script[type="application/ld+json"]'
+  );
+  if (structuredData) {
+    structuredData.textContent = JSON.stringify(schema);
+  } else {
+    structuredData = document.createElement("script");
+    structuredData.setAttribute("type", "application/ld+json");
+    structuredData.textContent = JSON.stringify(schema);
+    document.head.appendChild(structuredData);
+  }
+}
+
 export default function NotePage() {
   const params = useParams();
   const router = useRouter();
@@ -30,65 +69,29 @@ export default function NotePage() {
 
   // Update page title and meta tags dynamically
   useEffect(() => {
-    if (note && note.title) {
-      document.title = `${note.title} | ${siteConfig.title}`;
-
-      // Update meta description
-      const metaDescription = document.querySelector(
-        'meta[name="description"]'
-      );
-      const description = note.content
-        ? note.content.substring(0, 155)
-        : siteConfig.description;
-      if (metaDescription) {
-        metaDescription.setAttribute("content", description);
-      } else {
-        const meta = document.createElement("meta");
-        meta.name = "description";
-        meta.content = description;
-        document.head.appendChild(meta);
+    if (!note?.title) {
+      if (note) {
+        document.title = siteConfig.title;
       }
-
-      // Update canonical URL
-      let canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical) {
-        canonical.setAttribute("href", `${siteConfig.url}/${slug}`);
-      } else {
-        canonical = document.createElement("link");
-        canonical.setAttribute("rel", "canonical");
-        canonical.setAttribute("href", `${siteConfig.url}/${slug}`);
-        document.head.appendChild(canonical);
-      }
-
-      // Add structured data
-      let structuredData = document.querySelector(
-        'script[type="application/ld+json"]'
-      );
-      if (structuredData) {
-        structuredData.textContent = JSON.stringify(
-          generateArticleSchema(
-            note.title,
-            note.content ?? "",
-            slug,
-            note._creationTime
-          )
-        );
-      } else {
-        structuredData = document.createElement("script");
-        structuredData.setAttribute("type", "application/ld+json");
-        structuredData.textContent = JSON.stringify(
-          generateArticleSchema(
-            note.title,
-            note.content ?? "",
-            slug,
-            note._creationTime
-          )
-        );
-        document.head.appendChild(structuredData);
-      }
-    } else if (note) {
-      document.title = siteConfig.title;
+      return;
     }
+
+    document.title = `${note.title} | ${siteConfig.title}`;
+
+    const description = note.content
+      ? note.content.substring(0, 155)
+      : siteConfig.description;
+
+    updateMetaDescription(description);
+    updateCanonicalUrl(`${siteConfig.url}/${slug}`);
+    updateStructuredData(
+      generateArticleSchema(
+        note.title,
+        note.content ?? "",
+        slug,
+        note._creationTime
+      )
+    );
   }, [note, slug]);
 
   // Loading state
@@ -106,7 +109,10 @@ export default function NotePage() {
   }
 
   return (
-    <div className="min-h-dvh w-full p-3">
+    <div
+      className="fade-in slide-in-from-right-2 min-h-dvh w-full animate-in p-3 duration-200"
+      key={slug}
+    >
       <Note note={note} />
     </div>
   );

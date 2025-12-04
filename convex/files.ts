@@ -6,11 +6,5 @@ export const generateUploadUrl = mutation({
   handler: async (ctx) => await ctx.storage.generateUploadUrl(),
 });
 
-// Get a URL for a stored file
-export const getFileUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
-    // This is a placeholder - the actual URL is returned from the upload response
-    return null;
-  },
-});
+// Note: File URLs are constructed directly from storage IDs on the client side
+// The pattern is: ${CONVEX_URL}/api/storage/${storageId}

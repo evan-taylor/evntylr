@@ -24,10 +24,20 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const publicNotes = useQuery(api.notes.getPublicNotes) as Note[] | undefined;
 
   useEffect(() => {
-    if (isMobile !== null && !isMobile && pathname === "/notes") {
-      router.push("/about-me");
+    if (
+      isMobile !== null &&
+      !isMobile &&
+      pathname === "/notes" &&
+      publicNotes
+    ) {
+      // Find the first pinned note, or fall back to the first public note
+      const firstNote =
+        publicNotes.find((note) => note.pinned) || publicNotes[0];
+      if (firstNote) {
+        router.push(`/${firstNote.slug}`);
+      }
     }
-  }, [isMobile, router, pathname]);
+  }, [isMobile, router, pathname, publicNotes]);
 
   const handleNoteSelect = (note: Note) => {
     router.push(`/${note.slug}`);
