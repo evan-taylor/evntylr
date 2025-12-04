@@ -37,7 +37,11 @@ function getCategoryByDate(createdDate: Date, bounds: DateBoundaries): string {
   return "older";
 }
 
-export function groupNotesByCategory(notes: Note[], pinnedNotes: Set<string>) {
+export function groupNotesByCategory(
+  notes: Note[],
+  pinnedNotes: Set<string>,
+  unpinnedPublicNotes: Set<string> = new Set()
+) {
   const groupedNotes: Record<string, Note[]> = {
     pinned: [],
   };
@@ -45,8 +49,15 @@ export function groupNotesByCategory(notes: Note[], pinnedNotes: Set<string>) {
   const dateBounds = calculateDateBoundaries();
 
   for (const note of notes) {
-    // Admin-pinned notes or user-pinned notes go to pinned category
-    if (note.pinned === true || pinnedNotes.has(note.slug)) {
+    // Check if user has explicitly unpinned this public note
+    const isExplicitlyUnpinned =
+      note.public && note.pinned === true && unpinnedPublicNotes.has(note.slug);
+
+    // Admin-pinned notes (unless explicitly unpinned) or user-pinned notes go to pinned category
+    if (
+      !isExplicitlyUnpinned &&
+      (note.pinned === true || pinnedNotes.has(note.slug))
+    ) {
       groupedNotes.pinned.push(note);
       continue;
     }

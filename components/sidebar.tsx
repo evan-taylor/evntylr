@@ -170,6 +170,9 @@ export default function Sidebar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [selectedNoteSlug, setSelectedNoteSlug] = useState<string | null>(null);
   const [pinnedNotes, setPinnedNotes] = useState<Set<string>>(new Set());
+  const [unpinnedPublicNotes, setUnpinnedPublicNotes] = useState<Set<string>>(
+    new Set()
+  );
   const pathname = usePathname();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [localSearchResults, setLocalSearchResults] = useState<Note[] | null>(
@@ -244,9 +247,17 @@ export default function Sidebar({
   }, [selectedNoteSlug, notes]);
 
   useEffect(() => {
+    const currentNoteSlugs = new Set(notes.map((note) => note.slug));
+
     const storedPinnedNotes = localStorage.getItem("pinnedNotes");
     if (storedPinnedNotes) {
-      setPinnedNotes(new Set(JSON.parse(storedPinnedNotes)));
+      // Filter to only include slugs that still exist
+      const filteredPinnedNotes = (
+        JSON.parse(storedPinnedNotes) as string[]
+      ).filter((slug) => currentNoteSlugs.has(slug));
+      setPinnedNotes(new Set(filteredPinnedNotes));
+      // Update localStorage to remove stale entries
+      localStorage.setItem("pinnedNotes", JSON.stringify(filteredPinnedNotes));
     } else {
       const initialPinnedNotes = new Set(
         notes
@@ -264,16 +275,37 @@ export default function Sidebar({
         JSON.stringify(Array.from(initialPinnedNotes))
       );
     }
+
+    // Load unpinned public notes from localStorage
+    const storedUnpinnedPublicNotes = localStorage.getItem(
+      "unpinnedPublicNotes"
+    );
+    if (storedUnpinnedPublicNotes) {
+      // Filter to only include slugs that still exist
+      const filteredUnpinnedPublicNotes = (
+        JSON.parse(storedUnpinnedPublicNotes) as string[]
+      ).filter((slug) => currentNoteSlugs.has(slug));
+      setUnpinnedPublicNotes(new Set(filteredUnpinnedPublicNotes));
+      // Update localStorage to remove stale entries
+      localStorage.setItem(
+        "unpinnedPublicNotes",
+        JSON.stringify(filteredUnpinnedPublicNotes)
+      );
+    }
   }, [notes, sessionId]);
 
   useEffect(() => {
     const userSpecificNotes = notes.filter(
       (note) => note.public || note.sessionId === sessionId
     );
-    const grouped = groupNotesByCategory(userSpecificNotes, pinnedNotes);
+    const grouped = groupNotesByCategory(
+      userSpecificNotes,
+      pinnedNotes,
+      unpinnedPublicNotes
+    );
     sortGroupedNotes(grouped);
     setGroupedNotes(grouped);
-  }, [notes, sessionId, pinnedNotes]);
+  }, [notes, sessionId, pinnedNotes, unpinnedPublicNotes]);
 
   useEffect(() => {
     if (localSearchResults && localSearchResults.length > 0) {
@@ -331,19 +363,46 @@ export default function Sidebar({
   const handlePinToggle = useCallback(
     (slug: string, isCurrentlyPinned: boolean) => {
       const isPinning = !isCurrentlyPinned;
-      setPinnedNotes((prev) => {
-        const newPinned = new Set(prev);
-        if (isPinning) {
-          newPinned.add(slug);
-        } else {
-          newPinned.delete(slug);
-        }
-        localStorage.setItem(
-          "pinnedNotes",
-          JSON.stringify(Array.from(newPinned))
-        );
-        return newPinned;
-      });
+      const note = notes.find((n) => n.slug === slug);
+
+      // If unpinning a public note that has pinned: true, track it as explicitly unpinned
+      if (!isPinning && note?.public && note?.pinned === true) {
+        setUnpinnedPublicNotes((prev) => {
+          const newUnpinned = new Set(prev);
+          newUnpinned.add(slug);
+          localStorage.setItem(
+            "unpinnedPublicNotes",
+            JSON.stringify(Array.from(newUnpinned))
+          );
+          return newUnpinned;
+        });
+      } else if (isPinning && note?.public && note?.pinned === true) {
+        // If re-pinning a public note that has pinned: true, remove from unpinned set
+        setUnpinnedPublicNotes((prev) => {
+          const newUnpinned = new Set(prev);
+          newUnpinned.delete(slug);
+          localStorage.setItem(
+            "unpinnedPublicNotes",
+            JSON.stringify(Array.from(newUnpinned))
+          );
+          return newUnpinned;
+        });
+      } else {
+        // Regular pin/unpin for non-public or non-admin-pinned notes
+        setPinnedNotes((prev) => {
+          const newPinned = new Set(prev);
+          if (isPinning) {
+            newPinned.add(slug);
+          } else {
+            newPinned.delete(slug);
+          }
+          localStorage.setItem(
+            "pinnedNotes",
+            JSON.stringify(Array.from(newPinned))
+          );
+          return newPinned;
+        });
+      }
 
       clearSearch();
 
@@ -353,7 +412,7 @@ export default function Sidebar({
 
       toast(isPinning ? "Note pinned" : "Note unpinned");
     },
-    [router, isMobile, clearSearch]
+    [router, isMobile, clearSearch, notes]
   );
 
   const handleNoteDelete = useCallback(
@@ -442,13 +501,21 @@ export default function Sidebar({
       ArrowDown: () => navigateNotes("down"),
       k: () => navigateNotes("up"),
       ArrowUp: () => navigateNotes("up"),
-      p: () =>
-        highlightedNote &&
-        handlePinToggle(
-          highlightedNote.slug,
-          highlightedNote.pinned === true ||
-            pinnedNotes.has(highlightedNote.slug)
-        ),
+      p: () => {
+        if (!highlightedNote) {
+          return;
+        }
+        // Determine if the note is currently pinned
+        const isExplicitlyUnpinned =
+          highlightedNote.public &&
+          highlightedNote.pinned === true &&
+          unpinnedPublicNotes.has(highlightedNote.slug);
+        const isCurrentlyPinned =
+          !isExplicitlyUnpinned &&
+          (highlightedNote.pinned === true ||
+            pinnedNotes.has(highlightedNote.slug));
+        handlePinToggle(highlightedNote.slug, isCurrentlyPinned);
+      },
       d: () => highlightedNote && handleNoteDelete(highlightedNote),
       "/": () => searchInputRef.current?.focus(),
       Escape: () => (document.activeElement as HTMLElement)?.blur(),
@@ -504,6 +571,7 @@ export default function Sidebar({
     setTheme,
     theme,
     pinnedNotes,
+    unpinnedPublicNotes,
   ]);
 
   const handleNoteSelect = useCallback(
@@ -560,6 +628,7 @@ export default function Sidebar({
             sessionId={sessionId}
             setSelectedNoteSlug={setSelectedNoteSlug}
             togglePinned={handlePinToggle}
+            unpinnedPublicNotes={unpinnedPublicNotes}
           />
           <div className={`${isMobile ? "w-full" : "w-[320px]"} px-2`}>
             <SearchBar
@@ -588,6 +657,7 @@ export default function Sidebar({
               sessionId={sessionId}
               setOpenSwipeItemSlug={setOpenSwipeItemSlug}
               setSelectedNoteSlug={setSelectedNoteSlug}
+              unpinnedPublicNotes={unpinnedPublicNotes}
             />
           </div>
         </div>

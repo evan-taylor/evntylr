@@ -48,6 +48,7 @@ export type CommandMenuProps = {
   setSelectedNoteSlug: (slug: string | null) => void;
   isMobile: boolean;
   pinnedNotes: Set<string>;
+  unpinnedPublicNotes: Set<string>;
 };
 
 export const CommandMenu = forwardRef<
@@ -66,6 +67,7 @@ export const CommandMenu = forwardRef<
       setSelectedNoteSlug,
       isMobile,
       pinnedNotes,
+      unpinnedPublicNotes,
     },
     ref
   ) => {
@@ -150,13 +152,18 @@ export const CommandMenu = forwardRef<
 
     const handleTogglePin = useCallback(() => {
       if (highlightedNote) {
+        const isExplicitlyUnpinned =
+          highlightedNote.public &&
+          highlightedNote.pinned === true &&
+          unpinnedPublicNotes.has(highlightedNote.slug);
         const isCurrentlyPinned =
-          highlightedNote.pinned === true ||
-          pinnedNotes.has(highlightedNote.slug);
+          !isExplicitlyUnpinned &&
+          (highlightedNote.pinned === true ||
+            pinnedNotes.has(highlightedNote.slug));
         togglePinned(highlightedNote.slug, isCurrentlyPinned);
         setOpen(false);
       }
-    }, [highlightedNote, togglePinned, pinnedNotes]);
+    }, [highlightedNote, togglePinned, pinnedNotes, unpinnedPublicNotes]);
 
     const handleDeleteNote = useCallback(() => {
       if (highlightedNote) {

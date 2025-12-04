@@ -10,6 +10,7 @@ type SidebarContentProps = {
   sessionId: string;
   handlePinToggle: (slug: string, isCurrentlyPinned: boolean) => void;
   pinnedNotes: Set<string>;
+  unpinnedPublicNotes: Set<string>;
   localSearchResults: Note[] | null;
   highlightedIndex: number;
   categoryOrder: string[];
@@ -28,6 +29,7 @@ export function SidebarContent({
   sessionId,
   handlePinToggle,
   pinnedNotes,
+  unpinnedPublicNotes,
   localSearchResults,
   highlightedIndex,
   categoryOrder,
@@ -39,6 +41,20 @@ export function SidebarContent({
   setSelectedNoteSlug,
 }: SidebarContentProps) {
   const router = useRouter();
+
+  const isNotePinned = useCallback(
+    (note: Note) => {
+      const isExplicitlyUnpinned =
+        note.public &&
+        note.pinned === true &&
+        unpinnedPublicNotes.has(note.slug);
+      return (
+        !isExplicitlyUnpinned &&
+        (note.pinned === true || pinnedNotes.has(note.slug))
+      );
+    },
+    [pinnedNotes, unpinnedPublicNotes]
+  );
 
   const handlePinToggleWithClear = useCallback(
     (slug: string, isCurrentlyPinned: boolean) => {
@@ -83,7 +99,7 @@ export function SidebarContent({
                   handleNoteDelete={handleNoteDelete}
                   handlePinToggle={handlePinToggle}
                   isHighlighted={false}
-                  isPinned={item.pinned === true || pinnedNotes.has(item.slug)}
+                  isPinned={isNotePinned(item)}
                   isSearching={false}
                   item={item}
                   key={item._id}
@@ -115,7 +131,7 @@ export function SidebarContent({
               handleNoteDelete={handleDelete}
               handlePinToggle={handlePinToggleWithClear}
               isHighlighted={index === highlightedIndex}
-              isPinned={item.pinned === true || pinnedNotes.has(item.slug)}
+              isPinned={isNotePinned(item)}
               isSearching={true}
               item={item}
               key={item._id}
