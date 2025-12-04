@@ -3,9 +3,12 @@
 import { useMutation, useQuery } from "convex/react";
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Edit,
   Eye,
   EyeOff,
+  GripVertical,
   Lock,
   Pin,
   PinOff,
@@ -14,7 +17,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Note } from "@/lib/types";
@@ -41,6 +44,74 @@ export default function AdminPage() {
   const updateNote = useMutation(api.notes.adminUpdateNote);
   const createNote = useMutation(api.notes.adminCreateNote);
   const deleteNote = useMutation(api.notes.adminDeleteNote);
+  const updatePinOrder = useMutation(api.notes.adminUpdatePinOrder);
+
+  // Get sorted pinned notes
+  const pinnedNotes = useMemo(() => {
+    if (!notes) {
+      return [];
+    }
+    return notes
+      .filter((n) => n.public && n.pinned)
+      .sort((a, b) => {
+        const orderA = a.pinOrder ?? Number.MAX_SAFE_INTEGER;
+        const orderB = b.pinOrder ?? Number.MAX_SAFE_INTEGER;
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        return b._creationTime - a._creationTime;
+      });
+  }, [notes]);
+
+  const handleMoveUp = useCallback(
+    async (index: number) => {
+      if (index === 0) {
+        return;
+      }
+      const newOrder = [...pinnedNotes];
+      [newOrder[index - 1], newOrder[index]] = [
+        newOrder[index],
+        newOrder[index - 1],
+      ];
+      const orders = newOrder.map((note, i) => ({
+        slug: note.slug,
+        pinOrder: i,
+      }));
+      try {
+        await updatePinOrder({ orders });
+        toast.success("Order updated");
+      } catch (error) {
+        console.error("Failed to update order:", error);
+        toast.error("Failed to update order");
+      }
+    },
+    [pinnedNotes, updatePinOrder]
+  );
+
+  const handleMoveDown = useCallback(
+    async (index: number) => {
+      if (index === pinnedNotes.length - 1) {
+        return;
+      }
+      const newOrder = [...pinnedNotes];
+      [newOrder[index], newOrder[index + 1]] = [
+        newOrder[index + 1],
+        newOrder[index],
+      ];
+      const orders = newOrder.map((note, i) => ({
+        slug: note.slug,
+        pinOrder: i,
+      }));
+      try {
+        await updatePinOrder({ orders });
+        toast.success("Order updated");
+      } catch (error) {
+        console.error("Failed to update order:", error);
+        toast.error("Failed to update order");
+      }
+    },
+    [pinnedNotes, updatePinOrder]
+  );
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,15 +169,29 @@ export default function AdminPage() {
   const handleTogglePinned = useCallback(
     async (note: Note) => {
       try {
-        await updateNote({
-          slug: note.slug,
-          pinned: !note.pinned,
-        });
+        if (note.pinned) {
+          // Unpinning - just remove pinned flag
+          await updateNote({
+            slug: note.slug,
+            pinned: false,
+          });
+        } else {
+          // Pinning - set pinOrder to end of list
+          const maxOrder = pinnedNotes.reduce(
+            (max: number, n: Note) => Math.max(max, n.pinOrder ?? 0),
+            -1
+          );
+          await updateNote({
+            slug: note.slug,
+            pinned: true,
+            pinOrder: maxOrder + 1,
+          });
+        }
       } catch (error) {
         console.error("Failed to toggle pinned:", error);
       }
     },
-    [updateNote]
+    [updateNote, pinnedNotes]
   );
 
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -138,6 +223,16 @@ export default function AdminPage() {
         return;
       }
       try {
+        // If pinning, set pinOrder to end of list
+        let pinOrder: number | undefined;
+        if (newNote.pinned) {
+          const maxOrder = pinnedNotes.reduce(
+            (max: number, n: Note) => Math.max(max, n.pinOrder ?? 0),
+            -1
+          );
+          pinOrder = maxOrder + 1;
+        }
+
         await createNote({
           slug: newNote.slug,
           title: newNote.title,
@@ -147,6 +242,15 @@ export default function AdminPage() {
           category: newNote.category || undefined,
           pinned: newNote.pinned,
         });
+
+        // If pinned, update the pin order
+        if (newNote.pinned && pinOrder !== undefined) {
+          await updateNote({
+            slug: newNote.slug,
+            pinOrder,
+          });
+        }
+
         setNewNote({
           slug: "",
           title: "",
@@ -163,7 +267,7 @@ export default function AdminPage() {
         toast.error("Failed to create note. Slug may already exist.");
       }
     },
-    [createNote, newNote]
+    [createNote, newNote, pinnedNotes, updateNote]
   );
 
   if (!isAuthenticated) {
@@ -361,6 +465,67 @@ export default function AdminPage() {
               </div>
             </form>
           </div>
+        )}
+
+        {/* Pinned Notes Reordering */}
+        {pinnedNotes.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-4 flex items-center gap-2 font-semibold text-lg">
+              <Pin className="h-5 w-5 fill-current text-amber-500" />
+              Pinned Notes Order ({pinnedNotes.length})
+            </h2>
+            <p className="mb-4 text-muted-foreground text-sm">
+              Reorder how pinned notes appear for all visitors. Notes at the top
+              appear first.
+            </p>
+            <div className="space-y-1 rounded-lg border border-border bg-card p-2">
+              {pinnedNotes.map((note: Note, index: number) => (
+                <div
+                  className="flex items-center justify-between rounded-md border border-border/50 bg-background p-3 transition-colors hover:bg-muted/50"
+                  key={note._id}
+                >
+                  <div className="flex items-center gap-3">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <span className="w-6 font-mono text-muted-foreground text-sm">
+                      {index + 1}
+                    </span>
+                    <span className="text-xl">{note.emoji}</span>
+                    <span className="font-medium">
+                      {note.title || "Untitled"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      className={`rounded-md p-2 transition-colors ${
+                        index === 0
+                          ? "cursor-not-allowed text-muted-foreground/30"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                      disabled={index === 0}
+                      onClick={() => handleMoveUp(index)}
+                      title="Move up"
+                      type="button"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      className={`rounded-md p-2 transition-colors ${
+                        index === pinnedNotes.length - 1
+                          ? "cursor-not-allowed text-muted-foreground/30"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                      disabled={index === pinnedNotes.length - 1}
+                      onClick={() => handleMoveDown(index)}
+                      title="Move down"
+                      type="button"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Public Notes */}

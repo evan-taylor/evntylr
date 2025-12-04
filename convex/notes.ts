@@ -202,6 +202,7 @@ export const adminUpdateNote = mutation({
     public: v.optional(v.boolean()),
     category: v.optional(v.string()),
     pinned: v.optional(v.boolean()),
+    pinOrder: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const note = await ctx.db
@@ -231,6 +232,9 @@ export const adminUpdateNote = mutation({
     }
     if (args.pinned !== undefined) {
       updates.pinned = args.pinned;
+    }
+    if (args.pinOrder !== undefined) {
+      updates.pinOrder = args.pinOrder;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -293,6 +297,31 @@ export const adminDeleteNote = mutation({
     }
 
     await ctx.db.delete(note._id);
+    return { success: true };
+  },
+});
+
+// Admin: Update pin order for multiple notes at once
+export const adminUpdatePinOrder = mutation({
+  args: {
+    orders: v.array(
+      v.object({
+        slug: v.string(),
+        pinOrder: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    for (const { slug, pinOrder } of args.orders) {
+      const note = await ctx.db
+        .query("notes")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+
+      if (note) {
+        await ctx.db.patch(note._id, { pinOrder });
+      }
+    }
     return { success: true };
   },
 });
