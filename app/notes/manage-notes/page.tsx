@@ -21,6 +21,14 @@ import {
 import posthog from "posthog-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import type { Note } from "@/lib/types";
@@ -141,12 +149,15 @@ export default function AdminPage() {
     category: "",
     pinned: false,
   });
+  const [promoteDialogNote, setPromoteDialogNote] = useState<Note | null>(null);
+  const [newSlug, setNewSlug] = useState("");
 
   const notes = useQuery(api.notes.getAllNotes) as Note[] | undefined;
   const updateNote = useMutation(api.notes.adminUpdateNote);
   const createNote = useMutation(api.notes.adminCreateNote);
   const deleteNote = useMutation(api.notes.adminDeleteNote);
   const updatePinOrder = useMutation(api.notes.adminUpdatePinOrder);
+  const updateSlug = useMutation(api.notes.adminUpdateSlug);
 
   // Get sorted pinned notes
   const pinnedNotes = useMemo(() => {
@@ -263,17 +274,67 @@ export default function AdminPage() {
 
   const handleTogglePublic = useCallback(
     async (note: Note) => {
+      // If promoting from private to public, show dialog for slug editing
+      if (!note.public) {
+        setPromoteDialogNote(note);
+        setNewSlug(note.slug);
+        return;
+      }
+
+      // If making public note private, just update directly
       try {
         await updateNote({
           slug: note.slug,
-          public: !note.public,
+          public: false,
         });
+        toast.success("Note made private");
       } catch (error) {
         console.error("Failed to toggle public:", error);
+        toast.error("Failed to update note");
       }
     },
     [updateNote]
   );
+
+  const handleConfirmPromote = useCallback(async () => {
+    if (!promoteDialogNote) {
+      return;
+    }
+
+    try {
+      // Check if slug needs to be updated
+      const slugChanged = newSlug !== promoteDialogNote.slug;
+
+      if (slugChanged) {
+        // Update slug first
+        await updateSlug({
+          oldSlug: promoteDialogNote.slug,
+          newSlug,
+        });
+      }
+
+      // Then promote to public
+      await updateNote({
+        slug: newSlug, // Use new slug if changed
+        public: true,
+      });
+
+      posthog.capture("admin_note_promoted", {
+        old_slug: promoteDialogNote.slug,
+        new_slug: newSlug,
+        slug_changed: slugChanged,
+      });
+
+      toast.success("Note promoted to public");
+      setPromoteDialogNote(null);
+      setNewSlug("");
+    } catch (error) {
+      console.error("Failed to promote note:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to promote note"
+      );
+    }
+  }, [promoteDialogNote, newSlug, updateSlug, updateNote]);
 
   const handleTogglePinned = useCallback(
     async (note: Note) => {
@@ -425,6 +486,74 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
+      {/* Promote to Public Dialog */}
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setPromoteDialogNote(null);
+            setNewSlug("");
+          }
+        }}
+        open={promoteDialogNote !== null}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Promote Note to Public</DialogTitle>
+            <DialogDescription>
+              You're about to make this note public. You can optionally change
+              the slug to make it more readable or SEO-friendly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label
+                className="mb-1 block font-medium text-sm"
+                htmlFor="promote-slug"
+              >
+                Slug
+              </label>
+              <input
+                className="w-full rounded-md border border-border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                id="promote-slug"
+                onChange={(e) => setNewSlug(e.target.value)}
+                placeholder="my-public-note"
+                type="text"
+                value={newSlug}
+              />
+              <p className="mt-1 text-muted-foreground text-xs">
+                Current:{" "}
+                <span className="font-mono">{promoteDialogNote?.slug}</span>
+              </p>
+            </div>
+            <div className="rounded-md border border-border bg-muted/50 p-3">
+              <p className="text-sm">
+                <span className="font-medium">Note:</span>{" "}
+                {promoteDialogNote?.title || "Untitled"}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              className="rounded-md border border-border px-4 py-2 transition-colors hover:bg-muted"
+              onClick={() => {
+                setPromoteDialogNote(null);
+                setNewSlug("");
+              }}
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              onClick={handleConfirmPromote}
+              type="button"
+            >
+              Promote to Public
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="font-bold text-2xl">📝 Note Admin</h1>

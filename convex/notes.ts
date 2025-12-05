@@ -301,6 +301,39 @@ export const adminDeleteNote = mutation({
   },
 });
 
+// Admin: Update note slug
+export const adminUpdateSlug = mutation({
+  args: {
+    oldSlug: v.string(),
+    newSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Check if new slug already exists
+    const existingNote = await ctx.db
+      .query("notes")
+      .withIndex("by_slug", (q) => q.eq("slug", args.newSlug))
+      .first();
+
+    if (existingNote) {
+      throw new Error("A note with this slug already exists");
+    }
+
+    // Find the note with old slug
+    const note = await ctx.db
+      .query("notes")
+      .withIndex("by_slug", (q) => q.eq("slug", args.oldSlug))
+      .first();
+
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    // Update the slug
+    await ctx.db.patch(note._id, { slug: args.newSlug });
+    return { success: true };
+  },
+});
+
 // Admin: Update pin order for multiple notes at once
 export const adminUpdatePinOrder = mutation({
   args: {
