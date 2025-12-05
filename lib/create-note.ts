@@ -1,3 +1,4 @@
+import posthog from "posthog-js";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import type { CreateNoteInput } from "./types";
@@ -58,8 +59,16 @@ export async function createNote(options: CreateNoteOptions) {
       });
     }
 
+    // Track note creation event
+    posthog.capture("note_created", {
+      note_slug: slug,
+      is_mobile: isMobile,
+      session_id: sessionId,
+    });
+
     toast.success("Private note created");
   } catch (error) {
     console.error("Error creating note:", error);
+    posthog.captureException(error as Error);
   }
 }

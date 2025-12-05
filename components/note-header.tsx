@@ -123,7 +123,7 @@ export default function NoteHeader({
               ref={pickerRef}
             >
               <EmojiPicker.Root
-                className="flex h-[360px] w-fit min-w-[352px] flex-col"
+                className="flex h-[300px] w-[280px] flex-col"
                 onEmojiSelect={handleEmojiSelect}
               >
                 <EmojiPicker.Search

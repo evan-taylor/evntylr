@@ -2,6 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useCallback, useContext, useRef, useState } from "react";
 import { SessionNotesContext } from "@/app/notes/session-notes";
 import { api } from "@/convex/_generated/api";
@@ -62,12 +63,18 @@ export default function Note({ note: initialNote }: { note: NoteType }) {
             content: updatesToSave.content,
           })
             .then(() => {
+              // Track note update event
+              posthog.capture("note_updated", {
+                note_slug: currentNote.slug,
+                updated_fields: Object.keys(updatesToSave),
+              });
               // Refresh session notes (Convex will auto-update due to reactivity)
               refreshSessionNotes();
               router.refresh();
             })
             .catch((error) => {
               console.error("Save failed:", error);
+              posthog.captureException(error as Error);
             });
         }
       }, 500);

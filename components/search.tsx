@@ -1,8 +1,10 @@
+import posthog from "posthog-js";
 import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
   useEffect,
+  useRef,
 } from "react";
 import type { Note } from "@/lib/types";
 import { Icons } from "./icons";
@@ -28,6 +30,8 @@ export function SearchBar({
   setHighlightedIndex,
   clearSearch,
 }: SearchBarProps) {
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Handle second Escape press to clear search
@@ -64,6 +68,17 @@ export function SearchBar({
 
     onSearchResults(filteredNotes);
     setHighlightedIndex(0);
+
+    // Debounce search tracking to avoid excessive events
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      posthog.capture("search_performed", {
+        query_length: query.trim().length,
+        results_count: filteredNotes.length,
+      });
+    }, 500);
   };
 
   return (

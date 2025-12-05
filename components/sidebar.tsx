@@ -3,6 +3,7 @@
 import { useMutation } from "convex/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import posthog from "posthog-js";
 import {
   useCallback,
   useContext,
@@ -427,6 +428,12 @@ export default function Sidebar({
         router.push(`/${slug}`);
       }
 
+      // Track pin/unpin event
+      posthog.capture(isPinning ? "note_pinned" : "note_unpinned", {
+        note_slug: slug,
+        is_mobile: isMobile,
+      });
+
       toast(isPinning ? "Note pinned" : "Note unpinned");
     },
     [router, isMobile, clearSearch, notes]
@@ -477,9 +484,16 @@ export default function Sidebar({
         refreshSessionNotes();
         router.refresh();
 
+        // Track note deletion event
+        posthog.capture("note_deleted", {
+          note_slug: noteToDelete.slug,
+          is_mobile: isMobile,
+        });
+
         toast.success("Note deleted");
       } catch (error) {
         console.error("Error deleting note:", error);
+        posthog.captureException(error as Error);
       }
     },
     [

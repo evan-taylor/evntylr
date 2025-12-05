@@ -1,18 +1,24 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Icons } from "./icons";
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
 
+  const handleThemeToggle = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    posthog.capture("theme_toggled", {
+      from_theme: theme,
+      to_theme: newTheme,
+    });
+  };
+
   return (
-    <Button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      size="icon"
-      variant="ghost"
-    >
+    <Button onClick={handleThemeToggle} size="icon" variant="ghost">
       <div className="relative h-[16px] w-[16px]">
         <div className="dark:-rotate-90 rotate-0 scale-100 transition-all dark:scale-0">
           <Icons.sun />

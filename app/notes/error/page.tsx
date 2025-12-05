@@ -1,8 +1,25 @@
+"use client";
+
+import posthog from "posthog-js";
+import { useEffect, useRef } from "react";
+
 const emoji = "🤔";
 const title = "Oops! This page doesn't exist";
 const message = "Please select or create another note";
 
 export default function ErrorPage() {
+  const hasTracked = useRef(false);
+
+  // Track note_not_found event on mount (only once)
+  useEffect(() => {
+    if (!hasTracked.current) {
+      hasTracked.current = true;
+      posthog.capture("note_not_found", {
+        url: window.location.href,
+      });
+    }
+  }, []);
+
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">

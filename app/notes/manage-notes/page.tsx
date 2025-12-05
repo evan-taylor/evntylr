@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
+import { EmojiPicker } from "frimousse";
 import {
   Check,
   ChevronDown,
@@ -17,10 +18,111 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import posthog from "posthog-js";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import type { Note } from "@/lib/types";
+
+type EmojiData = {
+  emoji: string;
+};
+
+// Reusable emoji picker field component
+function EmojiPickerField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (emoji: string) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close picker
+  useEffect(() => {
+    if (!showPicker) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setShowPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showPicker]);
+
+  return (
+    <div className="relative">
+      <span className="mb-1 block font-medium text-sm">Emoji</span>
+      <button
+        className="flex h-10 w-full items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-left hover:bg-muted/50"
+        onClick={() => setShowPicker(!showPicker)}
+        type="button"
+      >
+        <span className="text-xl">{value}</span>
+        <span className="text-muted-foreground text-xs">Click to change</span>
+      </button>
+      {showPicker === true && (
+        <div
+          className="absolute top-full left-0 z-50 mt-2 rounded-lg border border-border bg-popover p-2 shadow-lg"
+          ref={pickerRef}
+        >
+          <EmojiPicker.Root
+            className="flex h-[300px] w-[280px] flex-col"
+            onEmojiSelect={(data: EmojiData) => {
+              onChange(data.emoji);
+              setShowPicker(false);
+            }}
+          >
+            <EmojiPicker.Search
+              autoFocus
+              className="mb-2 h-9 rounded-md border border-input bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+              placeholder="Search emoji..."
+            />
+            <EmojiPicker.Viewport className="flex-1 overflow-y-auto">
+              <EmojiPicker.Loading className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                Loading…
+              </EmojiPicker.Loading>
+              <EmojiPicker.Empty className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                No emoji found.
+              </EmojiPicker.Empty>
+              <EmojiPicker.List
+                className="select-none"
+                components={{
+                  CategoryHeader: ({ category }) => (
+                    <div className="sticky top-0 bg-popover px-1 py-2 font-medium text-muted-foreground text-xs">
+                      {category.label}
+                    </div>
+                  ),
+                  Row: ({ children }) => (
+                    <div className="flex scroll-my-1">{children}</div>
+                  ),
+                  Emoji: ({ emoji, ...props }) => (
+                    <button
+                      className="flex h-8 w-8 items-center justify-center rounded text-xl transition-colors duration-200 hover:bg-accent"
+                      type="button"
+                      {...props}
+                    >
+                      {emoji.emoji}
+                    </button>
+                  ),
+                }}
+              />
+            </EmojiPicker.Viewport>
+          </EmojiPicker.Root>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
@@ -117,7 +219,9 @@ export default function AdminPage() {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
+      posthog.capture("admin_login_success");
     } else {
+      posthog.capture("admin_login_failed");
       toast.error("Incorrect password");
     }
   };
@@ -143,9 +247,14 @@ export default function AdminPage() {
         });
         setEditingNote(null);
         setEditForm({});
+        posthog.capture("admin_note_updated", {
+          note_slug: slug,
+          updated_fields: Object.keys(editForm),
+        });
         toast.success("Note updated");
       } catch (error) {
         console.error("Failed to update note:", error);
+        posthog.captureException(error as Error);
         toast.error("Failed to update note");
       }
     },
@@ -206,9 +315,13 @@ export default function AdminPage() {
       setDeleteConfirm(null);
       try {
         await deleteNote({ slug });
+        posthog.capture("admin_note_deleted", {
+          note_slug: slug,
+        });
         toast.success("Note deleted");
       } catch (error) {
         console.error("Failed to delete note:", error);
+        posthog.captureException(error as Error);
         toast.error("Failed to delete note");
       }
     },
@@ -251,6 +364,12 @@ export default function AdminPage() {
           });
         }
 
+        posthog.capture("admin_note_created", {
+          note_slug: newNote.slug,
+          is_public: newNote.public,
+          is_pinned: newNote.pinned,
+        });
+
         setNewNote({
           slug: "",
           title: "",
@@ -264,6 +383,7 @@ export default function AdminPage() {
         toast.success("Note created");
       } catch (error) {
         console.error("Failed to create note:", error);
+        posthog.captureException(error as Error);
         toast.error("Failed to create note. Slug may already exist.");
       }
     },
@@ -369,23 +489,10 @@ export default function AdminPage() {
                     value={newNote.title}
                   />
                 </div>
-                <div>
-                  <label
-                    className="mb-1 block font-medium text-sm"
-                    htmlFor="new-emoji"
-                  >
-                    Emoji
-                  </label>
-                  <input
-                    className="w-full rounded-md border border-border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                    id="new-emoji"
-                    onChange={(e) =>
-                      setNewNote({ ...newNote, emoji: e.target.value })
-                    }
-                    type="text"
-                    value={newNote.emoji}
-                  />
-                </div>
+                <EmojiPickerField
+                  onChange={(emoji) => setNewNote({ ...newNote, emoji })}
+                  value={newNote.emoji}
+                />
                 <div>
                   <label
                     className="mb-1 block font-medium text-sm"
@@ -410,16 +517,15 @@ export default function AdminPage() {
                   className="mb-1 block font-medium text-sm"
                   htmlFor="new-content"
                 >
-                  Content
+                  Content (Markdown)
                 </label>
-                <textarea
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                <Textarea
+                  className="min-h-[200px] rounded-md border border-border px-3 py-2 leading-relaxed focus:ring-1 focus:ring-ring"
                   id="new-content"
                   onChange={(e) =>
                     setNewNote({ ...newNote, content: e.target.value })
                   }
                   placeholder="Write your markdown content here..."
-                  rows={6}
                   value={newNote.content}
                 />
               </div>
@@ -644,23 +750,10 @@ function NoteRow({
               value={editForm.title ?? ""}
             />
           </div>
-          <div>
-            <label
-              className="mb-1 block font-medium text-sm"
-              htmlFor={`edit-emoji-${note.slug}`}
-            >
-              Emoji
-            </label>
-            <input
-              className="w-full rounded-md border border-border bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              id={`edit-emoji-${note.slug}`}
-              onChange={(e) =>
-                setEditForm({ ...editForm, emoji: e.target.value })
-              }
-              type="text"
-              value={editForm.emoji ?? ""}
-            />
-          </div>
+          <EmojiPickerField
+            onChange={(emoji) => setEditForm({ ...editForm, emoji })}
+            value={editForm.emoji ?? "📝"}
+          />
           <div>
             <label
               className="mb-1 block font-medium text-sm"
@@ -711,15 +804,14 @@ function NoteRow({
             className="mb-1 block font-medium text-sm"
             htmlFor={`edit-content-${note.slug}`}
           >
-            Content
+            Content (Markdown)
           </label>
-          <textarea
-            className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          <Textarea
+            className="min-h-[200px] rounded-md border border-border px-3 py-2 leading-relaxed focus:ring-1 focus:ring-ring"
             id={`edit-content-${note.slug}`}
             onChange={(e) =>
               setEditForm({ ...editForm, content: e.target.value })
             }
-            rows={8}
             value={editForm.content ?? ""}
           />
         </div>

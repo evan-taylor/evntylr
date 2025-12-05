@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import posthog from "posthog-js";
 import {
   forwardRef,
   useCallback,
@@ -104,7 +105,15 @@ export const CommandMenu = forwardRef<
       const down = (e: KeyboardEvent) => {
         if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
           e.preventDefault();
-          setOpen((currentOpen) => !currentOpen);
+          setOpen((currentOpen) => {
+            const newOpen = !currentOpen;
+            if (newOpen) {
+              posthog.capture("command_menu_opened", {
+                trigger: "keyboard_shortcut",
+              });
+            }
+            return newOpen;
+          });
         }
       };
       document.addEventListener("keydown", down);

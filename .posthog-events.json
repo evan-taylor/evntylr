@@ -1,0 +1,72 @@
+[
+  {
+    "event_name": "note_created",
+    "event_description": "User creates a new private note",
+    "file_path": "lib/create-note.ts"
+  },
+  {
+    "event_name": "note_deleted",
+    "event_description": "User deletes a note from their session",
+    "file_path": "components/sidebar.tsx"
+  },
+  {
+    "event_name": "note_pinned",
+    "event_description": "User pins a note to their sidebar",
+    "file_path": "components/sidebar.tsx"
+  },
+  {
+    "event_name": "note_unpinned",
+    "event_description": "User unpins a note from their sidebar",
+    "file_path": "components/sidebar.tsx"
+  },
+  {
+    "event_name": "search_performed",
+    "event_description": "User searches for notes in the sidebar",
+    "file_path": "components/search.tsx"
+  },
+  {
+    "event_name": "theme_toggled",
+    "event_description": "User toggles between light and dark theme",
+    "file_path": "components/theme-toggle.tsx"
+  },
+  {
+    "event_name": "command_menu_opened",
+    "event_description": "User opens the command menu via keyboard shortcut",
+    "file_path": "components/command-menu.tsx"
+  },
+  {
+    "event_name": "note_updated",
+    "event_description": "User saves changes to a note (title, content, or emoji)",
+    "file_path": "components/note.tsx"
+  },
+  {
+    "event_name": "admin_login_success",
+    "event_description": "Admin successfully logs into the admin panel",
+    "file_path": "app/notes/manage-notes/page.tsx"
+  },
+  {
+    "event_name": "admin_login_failed",
+    "event_description": "Admin login attempt failed with incorrect password",
+    "file_path": "app/notes/manage-notes/page.tsx"
+  },
+  {
+    "event_name": "admin_note_created",
+    "event_description": "Admin creates a new note via admin panel",
+    "file_path": "app/notes/manage-notes/page.tsx"
+  },
+  {
+    "event_name": "admin_note_updated",
+    "event_description": "Admin updates a note via admin panel",
+    "file_path": "app/notes/manage-notes/page.tsx"
+  },
+  {
+    "event_name": "admin_note_deleted",
+    "event_description": "Admin deletes a note via admin panel",
+    "file_path": "app/notes/manage-notes/page.tsx"
+  },
+  {
+    "event_name": "note_not_found",
+    "event_description": "User lands on error page when a note doesn't exist",
+    "file_path": "app/notes/error/page.tsx"
+  }
+]
