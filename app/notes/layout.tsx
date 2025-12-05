@@ -1,6 +1,7 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import SidebarLayout from "@/components/sidebar-layout";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -63,6 +64,7 @@ export default function RootLayout({
       <body
         className={cn("min-h-dvh font-sans antialiased", fontSans.variable)}
       >
+        <AnalyticsProvider />
         <ConvexClientProvider>
           <ThemeProvider
             attribute="class"

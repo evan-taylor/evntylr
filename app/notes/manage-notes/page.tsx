@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import posthog from "posthog-js";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
