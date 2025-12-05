@@ -19,7 +19,7 @@ export const Icons = {
     <Moon className="text-muted-foreground" size={16} {...props} />
   ),
   back: (props: IconProps) => (
-    <ChevronLeft className="text-[#e2a727]" size={32} {...props} />
+    <ChevronLeft className="text-foreground/90" size={20} {...props} />
   ),
   spinner: (props: IconProps) => (
     <svg

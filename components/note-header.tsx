@@ -67,12 +67,17 @@ export default function NoteHeader({
   return (
     <>
       {isMobile === true && pathname !== "/notes" && (
-        <Link href="/notes">
-          <button className="flex items-center pt-2" type="button">
-            <Icons.back />
-            <span className="ml-1 text-[#e2a727] text-base">Notes</span>
-          </button>
-        </Link>
+        <div className="pt-2">
+          <Link href="/notes">
+            <button
+              aria-label="Back to notes"
+              className="glass-button glass-button-circle flex items-center justify-center"
+              type="button"
+            >
+              <Icons.back className="relative z-10" />
+            </button>
+          </Link>
+        </div>
       )}
       <div className="relative mb-4 px-2">
         <div className="flex items-center justify-center">
