@@ -82,20 +82,24 @@ export function groupNotesByCategory(
 export function sortGroupedNotes(groupedNotes: Record<string, Note[]>) {
   for (const category of Object.keys(groupedNotes)) {
     if (category === "pinned") {
-      // Sort pinned notes by pinOrder (lower = higher priority), then by creation time
+      // Sort pinned notes by pinOrder (lower = higher priority), then by updatedAt
       groupedNotes[category].sort((a: Note, b: Note) => {
         const orderA = a.pinOrder ?? Number.MAX_SAFE_INTEGER;
         const orderB = b.pinOrder ?? Number.MAX_SAFE_INTEGER;
         if (orderA !== orderB) {
           return orderA - orderB;
         }
-        return b._creationTime - a._creationTime;
+        const timeA = a.updatedAt ?? a._creationTime;
+        const timeB = b.updatedAt ?? b._creationTime;
+        return timeB - timeA;
       });
     } else {
-      // Sort other categories by creation time (newest first)
-      groupedNotes[category].sort(
-        (a: Note, b: Note) => b._creationTime - a._creationTime
-      );
+      // Sort other categories by updatedAt (newest first), falling back to creation time
+      groupedNotes[category].sort((a: Note, b: Note) => {
+        const timeA = a.updatedAt ?? a._creationTime;
+        const timeB = b.updatedAt ?? b._creationTime;
+        return timeB - timeA;
+      });
     }
   }
 }

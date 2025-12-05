@@ -10,8 +10,9 @@ export type Note = {
   public: boolean;
   sessionId?: string;
   category?: string;
-  pinned?: boolean; // Admin-pinned notes shown for all users
-  pinOrder?: number; // Order for pinned notes (lower = higher priority)
+  pinned?: boolean;
+  pinOrder?: number;
+  updatedAt?: number;
 };
 
 // Input type for creating a note (without Convex-specific fields)

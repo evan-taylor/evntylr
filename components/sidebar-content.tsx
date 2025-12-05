@@ -6,7 +6,6 @@ import { NoteItem } from "./note-item";
 type SidebarContentProps = {
   groupedNotes: Record<string, Note[]>;
   selectedNoteSlug: string | null;
-  onNoteSelect: (note: Note) => void;
   sessionId: string;
   handlePinToggle: (slug: string, isCurrentlyPinned: boolean) => void;
   pinnedNotes: Set<string>;
@@ -25,7 +24,6 @@ type SidebarContentProps = {
 export function SidebarContent({
   groupedNotes,
   selectedNoteSlug,
-  onNoteSelect,
   sessionId,
   handlePinToggle,
   pinnedNotes,
@@ -104,7 +102,6 @@ export function SidebarContent({
                   item={item}
                   key={item._id}
                   onNoteEdit={handleEdit}
-                  onNoteSelect={onNoteSelect}
                   openSwipeItemSlug={openSwipeItemSlug}
                   selectedNoteSlug={selectedNoteSlug}
                   sessionId={sessionId}
@@ -136,7 +133,6 @@ export function SidebarContent({
               item={item}
               key={item._id}
               onNoteEdit={handleEdit}
-              onNoteSelect={onNoteSelect}
               openSwipeItemSlug={openSwipeItemSlug}
               selectedNoteSlug={selectedNoteSlug}
               sessionId={sessionId}

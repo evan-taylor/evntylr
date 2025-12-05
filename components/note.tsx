@@ -1,10 +1,8 @@
 "use client";
 
 import { useMutation } from "convex/react";
-import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useContext, useRef, useState } from "react";
-import { SessionNotesContext } from "@/app/notes/session-notes";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Note as NoteType } from "@/lib/types";
 import NoteContent from "./note-content";
@@ -12,17 +10,24 @@ import NoteHeader from "./note-header";
 import SessionId from "./session-id";
 
 export default function Note({ note: initialNote }: { note: NoteType }) {
-  const router = useRouter();
   const [note, setNote] = useState(initialNote);
   const [sessionId, setSessionId] = useState("");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingUpdatesRef = useRef<Partial<NoteType>>({});
   const noteRef = useRef(initialNote);
 
-  const { refreshSessionNotes } = useContext(SessionNotesContext);
-
   // Convex mutations
   const updateNoteMutation = useMutation(api.notes.updateNote);
+
+  // Cleanup timeout on unmount to prevent updates after component is gone
+  useEffect(
+    () => () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   const saveNote = useCallback(
     (updates: Partial<NoteType>) => {
@@ -55,6 +60,7 @@ export default function Note({ note: initialNote }: { note: NoteType }) {
           pendingUpdatesRef.current = {};
 
           // Use single mutation to update all fields
+          // Convex queries are reactive and will auto-update, no manual refresh needed
           updateNoteMutation({
             slug: currentNote.slug,
             sessionId,
@@ -68,18 +74,14 @@ export default function Note({ note: initialNote }: { note: NoteType }) {
                 note_slug: currentNote.slug,
                 updated_fields: Object.keys(updatesToSave),
               });
-              // Refresh session notes (Convex will auto-update due to reactivity)
-              refreshSessionNotes();
-              router.refresh();
             })
             .catch((error) => {
-              console.error("Save failed:", error);
               posthog.captureException(error as Error);
             });
         }
       }, 500);
     },
-    [router, refreshSessionNotes, sessionId, updateNoteMutation]
+    [sessionId, updateNoteMutation]
   );
 
   const canEdit = sessionId === note.sessionId;

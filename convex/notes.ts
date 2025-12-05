@@ -66,6 +66,7 @@ export const createNote = mutation({
       public: args.public,
       sessionId: args.sessionId,
       category: args.category ?? "today",
+      updatedAt: Date.now(),
     });
     return noteId;
   },
@@ -88,7 +89,7 @@ export const updateNoteTitle = mutation({
       throw new Error("Note not found or unauthorized");
     }
 
-    await ctx.db.patch(note._id, { title: args.title });
+    await ctx.db.patch(note._id, { title: args.title, updatedAt: Date.now() });
   },
 });
 
@@ -109,7 +110,7 @@ export const updateNoteEmoji = mutation({
       throw new Error("Note not found or unauthorized");
     }
 
-    await ctx.db.patch(note._id, { emoji: args.emoji });
+    await ctx.db.patch(note._id, { emoji: args.emoji, updatedAt: Date.now() });
   },
 });
 
@@ -130,7 +131,10 @@ export const updateNoteContent = mutation({
       throw new Error("Note not found or unauthorized");
     }
 
-    await ctx.db.patch(note._id, { content: args.content });
+    await ctx.db.patch(note._id, {
+      content: args.content,
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -153,7 +157,12 @@ export const updateNote = mutation({
       throw new Error("Note not found or unauthorized");
     }
 
-    const updates: { title?: string; emoji?: string; content?: string } = {};
+    const updates: {
+      title?: string;
+      emoji?: string;
+      content?: string;
+      updatedAt?: number;
+    } = {};
     if (args.title !== undefined) {
       updates.title = args.title;
     }
@@ -165,6 +174,7 @@ export const updateNote = mutation({
     }
 
     if (Object.keys(updates).length > 0) {
+      updates.updatedAt = Date.now();
       await ctx.db.patch(note._id, updates);
     }
   },
@@ -238,6 +248,7 @@ export const adminUpdateNote = mutation({
     }
 
     if (Object.keys(updates).length > 0) {
+      updates.updatedAt = Date.now();
       await ctx.db.patch(note._id, updates);
     }
 
@@ -275,6 +286,7 @@ export const adminCreateNote = mutation({
       public: args.public,
       category: args.category,
       pinned: args.pinned,
+      updatedAt: Date.now(),
     });
 
     return noteId;

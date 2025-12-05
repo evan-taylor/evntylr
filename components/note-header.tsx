@@ -7,7 +7,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { getDisplayDateByCategory } from "@/lib/note-utils";
 import type { Note } from "@/lib/types";
 import { Icons } from "./icons";
 import { useMobileDetect } from "./mobile-detector";
@@ -33,9 +32,9 @@ export default function NoteHeader({
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const displayDate = getDisplayDateByCategory(note.category, note._id);
-    setFormattedDate(format(displayDate, "MMMM d, yyyy 'at' h:mm a"));
-  }, [note.category, note._id]);
+    const lastUpdated = note.updatedAt ?? note._creationTime;
+    setFormattedDate(format(new Date(lastUpdated), "MMMM d, yyyy 'at' h:mm a"));
+  }, [note.updatedAt, note._creationTime]);
 
   // Handle click outside to close picker
   useEffect(() => {
