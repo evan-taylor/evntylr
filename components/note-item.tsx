@@ -66,7 +66,6 @@ type NoteItemProps = {
   item: Note;
   selectedNoteSlug: string | null;
   sessionId: string;
-  onNoteSelect: (note: Note) => void;
   onNoteEdit: (slug: string) => void;
   handlePinToggle: (slug: string, isCurrentlyPinned: boolean) => void;
   isPinned: boolean;
@@ -82,7 +81,6 @@ export const NoteItem = React.memo(function NoteItemComponent({
   item,
   selectedNoteSlug,
   sessionId,
-  onNoteSelect: _onNoteSelect,
   onNoteEdit,
   handlePinToggle,
   isPinned,
@@ -93,8 +91,6 @@ export const NoteItem = React.memo(function NoteItemComponent({
   setOpenSwipeItemSlug,
   showDivider = false,
 }: NoteItemProps) {
-  // Note: _onNoteSelect is kept for prop compatibility
-  const _ = _onNoteSelect; // Silence unused variable warning
   const isMobile = useMobileDetect();
   const [isSwiping, setIsSwiping] = useState(false);
   const isSwipeOpen = openSwipeItemSlug === item.slug;

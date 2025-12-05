@@ -39,10 +39,6 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     }
   }, [isMobile, router, pathname, publicNotes]);
 
-  const handleNoteSelect = (note: Note) => {
-    router.push(`/${note.slug}`);
-  };
-
   if (isMobile === null) {
     return null;
   }
@@ -53,17 +49,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     <SessionNotesProvider>
       <div className="flex h-dvh bg-white text-black dark:bg-[#1E1E1E] dark:text-white">
         {showSidebar === true && (
-          <Sidebar
-            isMobile={isMobile}
-            notes={publicNotes ?? []}
-            onNoteSelect={
-              isMobile
-                ? handleNoteSelect
-                : () => {
-                    // No-op for desktop - selection handled via URL
-                  }
-            }
-          />
+          <Sidebar isMobile={isMobile} notes={publicNotes ?? []} />
         )}
         {!(isMobile === true && showSidebar === true) && (
           <div className="h-dvh flex-grow bg-white dark:bg-[#1E1E1E]">

@@ -1,32 +1,14 @@
-"use client";
+import type { Metadata } from "next";
+import ErrorPageClient from "./error-page-client";
 
-import posthog from "posthog-js";
-import { useEffect, useRef } from "react";
-
-const emoji = "🤔";
-const title = "Oops! This page doesn't exist";
-const message = "Please select or create another note";
+export const metadata: Metadata = {
+  title: "Page Not Found",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function ErrorPage() {
-  const hasTracked = useRef(false);
-
-  // Track note_not_found event on mount (only once)
-  useEffect(() => {
-    if (!hasTracked.current) {
-      hasTracked.current = true;
-      posthog.capture("note_not_found", {
-        url: window.location.href,
-      });
-    }
-  }, []);
-
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="mb-4 text-6xl">{emoji}</div>
-        <h3 className="mb-2 font-bold text-xl">{title}</h3>
-        <p className="text-muted-foreground text-sm">{message}</p>
-      </div>
-    </div>
-  );
+  return <ErrorPageClient />;
 }

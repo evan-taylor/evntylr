@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     notesUrls =
       notes?.map((note) => ({
         url: `${process.env.NEXT_PUBLIC_SITE_URL}/${note.slug}`,
-        lastModified: new Date(note._creationTime),
+        lastModified: new Date(note.updatedAt ?? note._creationTime),
       })) ?? [];
   } catch (error) {
     // Log error but continue with base sitemap

@@ -10,8 +10,9 @@ export default defineSchema({
     public: v.boolean(),
     sessionId: v.optional(v.string()),
     category: v.optional(v.string()),
-    pinned: v.optional(v.boolean()), // For admin-pinned notes (shown for all users)
-    pinOrder: v.optional(v.number()), // Order for pinned notes (lower = higher priority)
+    pinned: v.optional(v.boolean()),
+    pinOrder: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
   })
     .index("by_slug", ["slug"])
     .index("by_session", ["sessionId"])

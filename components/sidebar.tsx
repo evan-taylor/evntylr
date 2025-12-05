@@ -153,11 +153,9 @@ function scrollToNoteAfterNavigation(slug: string): void {
 
 export default function Sidebar({
   notes: publicNotes,
-  onNoteSelect,
   isMobile,
 }: {
   notes: Note[];
-  onNoteSelect: (note: Note) => void;
   isMobile: boolean;
 }) {
   const router = useRouter();
@@ -218,7 +216,6 @@ export default function Sidebar({
     notes: sessionNotes,
     sessionId,
     setSessionId,
-    refreshSessionNotes,
   } = useContext(SessionNotesContext);
 
   const notes = useMemo(
@@ -242,18 +239,46 @@ export default function Sidebar({
     }
   }, [selectedNoteSlug, notes]);
 
+  // Load pinned notes from localStorage on initial mount
   useEffect(() => {
-    const currentNoteSlugs = new Set(notes.map((note) => note.slug));
-
     const storedPinnedNotes = localStorage.getItem("pinnedNotes");
     if (storedPinnedNotes) {
-      // Filter to only include slugs that still exist
-      const filteredPinnedNotes = (
-        JSON.parse(storedPinnedNotes) as string[]
-      ).filter((slug) => currentNoteSlugs.has(slug));
-      setPinnedNotes(new Set(filteredPinnedNotes));
-      // Update localStorage to remove stale entries
-      localStorage.setItem("pinnedNotes", JSON.stringify(filteredPinnedNotes));
+      setPinnedNotes(new Set(JSON.parse(storedPinnedNotes) as string[]));
+    }
+
+    const storedUnpinnedPublicNotes = localStorage.getItem(
+      "unpinnedPublicNotes"
+    );
+    if (storedUnpinnedPublicNotes) {
+      setUnpinnedPublicNotes(
+        new Set(JSON.parse(storedUnpinnedPublicNotes) as string[])
+      );
+    }
+  }, []);
+
+  // Initialize default pins if no stored pins exist, and prune stale slugs
+  useEffect(() => {
+    // Don't process if notes haven't loaded yet - this prevents wiping localStorage
+    if (notes.length === 0) {
+      return;
+    }
+
+    const currentNoteSlugs = new Set(notes.map((note) => note.slug));
+
+    // Initialize default pins if nothing stored, or prune stale slugs
+    const storedPinnedNotes = localStorage.getItem("pinnedNotes");
+    if (storedPinnedNotes) {
+      // Prune stale slugs from pinnedNotes
+      setPinnedNotes((prev) => {
+        const filtered = Array.from(prev).filter((slug) =>
+          currentNoteSlugs.has(slug)
+        );
+        if (filtered.length !== prev.size) {
+          localStorage.setItem("pinnedNotes", JSON.stringify(filtered));
+          return new Set(filtered);
+        }
+        return prev;
+      });
     } else {
       const initialPinnedNotes = new Set(
         notes
@@ -272,22 +297,20 @@ export default function Sidebar({
       );
     }
 
-    // Load unpinned public notes from localStorage
-    const storedUnpinnedPublicNotes = localStorage.getItem(
-      "unpinnedPublicNotes"
-    );
-    if (storedUnpinnedPublicNotes) {
-      // Filter to only include slugs that still exist
-      const filteredUnpinnedPublicNotes = (
-        JSON.parse(storedUnpinnedPublicNotes) as string[]
-      ).filter((slug) => currentNoteSlugs.has(slug));
-      setUnpinnedPublicNotes(new Set(filteredUnpinnedPublicNotes));
-      // Update localStorage to remove stale entries
-      localStorage.setItem(
-        "unpinnedPublicNotes",
-        JSON.stringify(filteredUnpinnedPublicNotes)
+    // Prune stale slugs from unpinnedPublicNotes
+    setUnpinnedPublicNotes((prev) => {
+      if (prev.size === 0) {
+        return prev;
+      }
+      const filtered = Array.from(prev).filter((slug) =>
+        currentNoteSlugs.has(slug)
       );
-    }
+      if (filtered.length !== prev.size) {
+        localStorage.setItem("unpinnedPublicNotes", JSON.stringify(filtered));
+        return new Set(filtered);
+      }
+      return prev;
+    });
   }, [notes, sessionId]);
 
   useEffect(() => {
@@ -481,8 +504,7 @@ export default function Sidebar({
         }
 
         clearSearch();
-        refreshSessionNotes();
-        router.refresh();
+        // Convex queries are reactive and will auto-update, no manual refresh needed
 
         // Track note deletion event
         posthog.capture("note_deleted", {
@@ -502,7 +524,6 @@ export default function Sidebar({
       flattenedNotes,
       isMobile,
       clearSearch,
-      refreshSessionNotes,
       router,
     ]
   );
@@ -605,17 +626,6 @@ export default function Sidebar({
     unpinnedPublicNotes,
   ]);
 
-  const handleNoteSelect = useCallback(
-    (note: Note) => {
-      onNoteSelect(note);
-      if (!isMobile) {
-        router.push(`/${note.slug}`);
-      }
-      clearSearch();
-    },
-    [clearSearch, onNoteSelect, isMobile, router]
-  );
-
   return (
     <div
       className={`${
@@ -679,7 +689,6 @@ export default function Sidebar({
               highlightedIndex={highlightedIndex}
               labels={labels}
               localSearchResults={localSearchResults}
-              onNoteSelect={handleNoteSelect}
               openSwipeItemSlug={openSwipeItemSlug}
               pinnedNotes={pinnedNotes}
               selectedNoteSlug={selectedNoteSlug}
