@@ -1,6 +1,6 @@
 # [notes](https://evntylr.com/notes)
 
-a notes-inspired website that doubles as my personal site. inspired by apple notes.
+a notes-inspired website that doubles as my personal site. inspired by apple notes, and built on top of [alana goyal's site](https://github.com/alanagoyal/alanagoyal) and idea. thanks alana!
 
 ## how it works
 
