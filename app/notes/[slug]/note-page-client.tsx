@@ -2,15 +2,22 @@
 
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Note from "@/components/note";
 import { api } from "@/convex/_generated/api";
 import type { Note as NoteType } from "@/lib/types";
 
 export default function NotePageClient({ slug }: { slug: string }) {
   const router = useRouter();
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
 
-  const note = useQuery(api.notes.getNoteBySlug, { slug }) as
+  // Get sessionId from localStorage on mount
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem("session_id");
+    setSessionId(storedSessionId ?? undefined);
+  }, []);
+
+  const note = useQuery(api.notes.getNoteBySlug, { slug, sessionId }) as
     | NoteType
     | null
     | undefined;
