@@ -14,14 +14,34 @@ export const getPublicNotes = query({
 });
 
 // Query to get a note by slug
+// Private notes are only returned if the sessionId matches
 export const getNoteBySlug = query({
-  args: { slug: v.string() },
-  handler: async (ctx, args) => {
+  args: {
+    slug: v.string(),
+    sessionId: v.optional(v.string()),
+  },
+  handler: async (ctx, { slug, sessionId }) => {
     const note = await ctx.db
       .query("notes")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
-    return note;
+
+    if (!note) {
+      return null;
+    }
+
+    // Public notes are always accessible
+    if (note.public) {
+      return note;
+    }
+
+    // Private notes are only accessible to the owning session
+    if (note.sessionId && sessionId && note.sessionId === sessionId) {
+      return note;
+    }
+
+    // Otherwise, treat as not found (don't expose private notes)
+    return null;
   },
 });
 

@@ -23,6 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   try {
+    // Don't pass sessionId for metadata - only public notes should have SEO metadata
     const note = await convex.query(api.notes.getNoteBySlug, { slug });
 
     if (!note?.public) {
