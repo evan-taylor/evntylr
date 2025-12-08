@@ -1,6 +1,7 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
+import Script from "next/script";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import SidebarLayout from "@/components/sidebar-layout";
@@ -60,6 +61,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link href={siteConfig.url} rel="canonical" />
+        <Script
+          data-token="d1084c34-9aa9-42d0-85f8-321538414220"
+          src="https://cdn.visitors.now/v.js"
+        />
       </head>
       <body
         className={cn("min-h-dvh font-sans antialiased", fontSans.variable)}
