@@ -15,7 +15,11 @@ import {
 import { toast } from "sonner";
 import { SessionNotesContext } from "@/app/notes/session-notes";
 import { api } from "@/convex/_generated/api";
-import { groupNotesByCategory, sortGroupedNotes } from "@/lib/note-utils";
+import {
+  getDynamicCategoryInfo,
+  groupNotesByCategory,
+  sortGroupedNotes,
+} from "@/lib/note-utils";
 import type { Note } from "@/lib/types";
 import { CommandMenu } from "./command-menu";
 import { Nav } from "./nav";
@@ -23,17 +27,6 @@ import { SearchBar } from "./search";
 import SessionId from "./session-id";
 import { SidebarContent } from "./sidebar-content";
 import { ScrollArea } from "./ui/scroll-area";
-
-const labels: Record<string, React.ReactNode> = {
-  pinned: "Pinned",
-  today: "Today",
-  yesterday: "Yesterday",
-  "7": "Previous 7 Days",
-  "30": "Previous 30 Days",
-  older: "Older",
-};
-
-const categoryOrder = ["pinned", "today", "yesterday", "7", "30", "older"];
 
 // Navigation keys that should be handled specially during search
 const NAV_KEYS = ["j", "ArrowDown", "k", "ArrowUp"];
@@ -326,6 +319,12 @@ export default function Sidebar({
     setGroupedNotes(grouped);
   }, [notes, sessionId, pinnedNotes, unpinnedPublicNotes]);
 
+  // Compute dynamic category order and labels based on grouped notes
+  const { categoryOrder, labels } = useMemo(
+    () => getDynamicCategoryInfo(groupedNotes),
+    [groupedNotes]
+  );
+
   useEffect(() => {
     if (localSearchResults && localSearchResults.length > 0) {
       setHighlightedNote(localSearchResults[highlightedIndex]);
@@ -348,7 +347,7 @@ export default function Sidebar({
       categoryOrder.flatMap((category) =>
         groupedNotes[category] ? groupedNotes[category] : []
       ),
-    [groupedNotes]
+    [groupedNotes, categoryOrder]
   );
 
   const navigateNotes = useCallback(

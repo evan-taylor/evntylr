@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useMobileDetect } from "@/components/mobile-detector";
-import { getDisplayDateByCategory } from "@/lib/note-utils";
+import { getNoteDisplayDate } from "@/lib/note-utils";
 import type { Note } from "@/lib/types";
 import { SwipeActions } from "./swipe-actions";
 import {
@@ -178,10 +178,7 @@ export const NoteItem = React.memo(function NoteItemComponent({
                   : "font-medium text-muted-foreground"
               }
             >
-              {getDisplayDateByCategory(
-                item.category,
-                item._id
-              ).toLocaleDateString("en-US")}
+              {getNoteDisplayDate(item).toLocaleDateString("en-US")}
             </span>{" "}
             {previewContent(item.content ?? "")}
           </p>
