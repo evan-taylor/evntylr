@@ -1,0 +1,39 @@
+app/globals.css
+  8b963e697dae0885 12,234-242,400-403
+features/home/components/ui-motion.tsx
+  8b963e697dae0885 59,70-71,88,91,96,99
+features/home/components/copy-email-button.tsx
+  8b963e697dae0885 7-8,12
+package.json
+  8b963e697dae0885 5,10-11
+features/home/components/home-page.tsx
+  8b963e697dae0885 42-44,47
+biome.jsonc
+  8b963e697dae0885 3-11
+AGENTS.md
+  8b963e697dae0885 7-9,123
+lefthook.yml
+  8b963e697dae0885 3
+features/home/types.ts
+  8b963e697dae0885 1-2,6-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.3",
+  "base_commit_sha": "33d3d29db09638724a119738dce5417721121592",
+  "prompts": {
+    "8b963e697dae0885": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2d1c8e85-4f58-4e29-b45f-dbff84c18228",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Evan Taylor",
+      "messages": [],
+      "total_additions": 56,
+      "total_deletions": 60,
+      "accepted_lines": 50,
+      "overriden_lines": 0
+    }
+  }
+}
