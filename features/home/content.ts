@@ -50,7 +50,7 @@ export const linkItems: LinkItem[] = [
     kind: "copy",
     label: "Email",
     email: EMAIL_ADDRESS,
-    details: "Copy address to reach me directly.",
+    details: "Reach out to me directly.",
   },
 ];
 

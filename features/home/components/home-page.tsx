@@ -1,10 +1,37 @@
 import { EMAIL_ADDRESS, experienceItems, footerContent, heroContent, linkItems, nowContent } from "../content";
+import { siteConfig } from "@/lib/site";
 import { CopyEmailButton } from "./copy-email-button";
 import { UiMotion } from "./ui-motion";
 
 export function HomePage() {
+  const personStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    description: siteConfig.description,
+    email: EMAIL_ADDRESS,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "San Luis Obispo",
+      addressRegion: "CA",
+      addressCountry: "US",
+    },
+    affiliation: {
+      "@type": "CollegeOrUniversity",
+      name: "California Polytechnic State University",
+    },
+    knowsAbout: ["React", "Python", "Java", "Algorithms", "Software Development"],
+  };
+
   return (
     <div className="site-shell">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(personStructuredData),
+        }}
+      />
       <UiMotion />
       <div className="scroll-progress" aria-hidden="true" />
       <div className="preview" aria-hidden="true">
