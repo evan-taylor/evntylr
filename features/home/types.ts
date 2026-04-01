@@ -1,10 +1,10 @@
-export type ExperienceItem = {
-  organization: string;
-  role: string;
-  period: string;
+export interface ExperienceItem {
   details: string;
+  organization: string;
+  period: string;
   preview: string;
-};
+  role: string;
+}
 
 export type LinkItem =
   | {

@@ -3,7 +3,10 @@ import { chromium } from "playwright";
 const sites = [
   { url: "https://www.hovn.app", file: "public/previews/hovn.png" },
   { url: "https://www.manageinc.com", file: "public/previews/manage.png" },
-  { url: "https://tayloredinstruction.com", file: "public/previews/taylored.png" },
+  {
+    url: "https://tayloredinstruction.com",
+    file: "public/previews/taylored.png",
+  },
 ];
 
 const browser = await chromium.launch();

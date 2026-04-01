@@ -9,8 +9,7 @@
   --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
-@media only screen and (min-device-pixel-ratio: 2),
-  only screen and (min-resolution: 192dpi) {
+@media (min-resolution: 2dppx) {
   :root {
     --border-hairline: 0.5px;
   }
@@ -29,11 +28,11 @@ body {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
   font-family: var(--font-sans), sans-serif;
-  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
   text-rendering: optimizeLegibility;
 }
 
@@ -52,36 +51,36 @@ a {
 }
 
 .scroll-progress {
-  pointer-events: none;
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  height: 1px;
+  left: 0;
   z-index: 50;
+  height: 1px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.72);
   transform: scaleX(0);
   transform-origin: left center;
-  background: rgba(255, 255, 255, 0.72);
 }
 
 .site-frame {
-  width: min(100%, 780px);
-  margin: 0 auto;
-  min-height: 100svh;
-  padding-block: clamp(2.25rem, 9vh, 4.5rem) 1.25rem;
   display: flex;
   flex-direction: column;
+  width: min(100%, 780px);
+  min-height: 100svh;
+  padding-block: clamp(2.25rem, 9vh, 4.5rem) 1.25rem;
+  margin: 0 auto;
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.92);
   color: #0a0a0c;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .content {
   width: min(100%, 620px);
-  margin: 0 auto;
   padding: 0 0 3.5rem;
+  margin: 0 auto;
 }
 
 .block {
@@ -116,16 +115,16 @@ a {
 
 .name {
   margin: 0;
-  color: var(--text-muted);
   font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .lead {
-  margin: 0.85rem 0 0;
   max-width: 58ch;
+  margin: 0.85rem 0 0;
   font-size: clamp(1rem, 1.6vw, 1.08rem);
-  color: var(--text);
   line-height: 1.55;
+  color: var(--text);
   text-wrap: balance;
 }
 
@@ -135,11 +134,11 @@ a {
 }
 
 .copy {
-  margin: 0.95rem 0 0;
   max-width: 60ch;
-  color: var(--text-soft);
+  margin: 0.95rem 0 0;
   font-size: clamp(0.95rem, 1.4vw, 1rem);
   line-height: 1.6;
+  color: var(--text-soft);
   text-wrap: pretty;
 }
 
@@ -151,19 +150,19 @@ a {
   margin: 0;
   font-size: 0.73rem;
   font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .experience-list,
 .links-list {
-  margin: 0.95rem 0 0;
-  padding: 0;
-  list-style: none;
   display: grid;
   gap: 0.22rem;
+  padding: 0;
+  margin: 0.95rem 0 0;
   overflow: visible;
+  list-style: none;
 }
 
 .experience-item,
@@ -178,8 +177,8 @@ a {
   grid-template-columns: minmax(7.25rem, 8.25rem) minmax(0, 1fr);
   gap: 0.2rem 1.25rem;
   align-items: start;
-  margin-inline: -0.6rem;
   padding: 0.92rem 0.6rem;
+  margin-inline: -0.6rem;
   border-radius: 12px;
   transition:
     background-color 180ms ease,
@@ -205,8 +204,8 @@ a {
 .experience-period {
   padding-top: 0.12rem;
   font-size: 0.76rem;
-  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
 .experience-organization {
@@ -216,8 +215,8 @@ a {
 }
 
 .experience-details {
-  margin-top: 0.38rem;
   max-width: 48ch;
+  margin-top: 0.38rem;
   font-size: 0.9rem;
   line-height: 1.55;
   color: var(--text-muted);
@@ -225,19 +224,28 @@ a {
 
 .preview {
   position: fixed;
-  left: 0;
   top: 0;
+  left: 0;
+  z-index: 40;
   width: 300px;
   aspect-ratio: 16 / 10;
   pointer-events: none;
   user-select: none;
+  background-color: #101013;
+  background-image: var(--preview-image);
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: cover;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 18px 48px rgba(0, 0, 0, 0.48);
   opacity: 0;
   transform: translate3d(var(--px, -9999px), var(--py, -9999px), 0) scale(0.98);
   transition:
     transform 180ms var(--ease-out-cubic),
     opacity 160ms ease;
   will-change: transform;
-  z-index: 40;
 }
 
 .preview.is-visible {
@@ -245,28 +253,16 @@ a {
   transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(1);
 }
 
-.preview img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
-  border-radius: 12px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 18px 48px rgba(0, 0, 0, 0.48);
-}
-
 .item-link {
-  margin: 0 -0.6rem;
-  padding: 0.92rem 0.6rem;
-  min-height: 44px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.4rem 1rem;
   align-items: center;
-  border-radius: 12px;
+  min-height: 44px;
+  padding: 0.92rem 0.6rem;
+  margin: 0 -0.6rem;
   text-decoration: none;
+  border-radius: 12px;
   transition: background-color 180ms ease;
 }
 
@@ -278,12 +274,12 @@ a {
 }
 
 .item-label::after {
-  content: "";
   position: absolute;
-  left: 0;
   right: 0;
   bottom: -1px;
+  left: 0;
   height: 1px;
+  content: "";
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right;
@@ -291,32 +287,32 @@ a {
 }
 
 .item-arrow {
+  display: inline-block;
   margin-left: 0.28rem;
   opacity: 0;
   transform: translateX(-4px);
-  display: inline-block;
   transition:
     opacity 180ms ease,
     transform 180ms ease;
 }
 
 .item-description {
-  color: var(--text-muted);
   max-width: 24ch;
   font-size: 0.86rem;
   line-height: 1.45;
+  color: var(--text-muted);
   text-align: right;
   transition: color 180ms ease;
 }
 
 .copy-email-button {
-  appearance: none;
   position: relative;
-  border: 0;
-  background: none;
-  color: inherit;
   font: inherit;
+  color: inherit;
+  appearance: none;
   cursor: pointer;
+  background: none;
+  border: 0;
 }
 
 .copy-email-button--row {
@@ -326,22 +322,22 @@ a {
 
 .copy-email-button--inline {
   display: inline-flex;
-  align-items: center;
   gap: 0.38rem;
+  align-items: center;
 }
 
 .copy-email-button__label-wrap {
   display: inline-flex;
-  align-items: center;
   gap: 0.42rem;
+  align-items: center;
   min-width: 0;
 }
 
 .copy-email-button__status {
   position: relative;
+  flex: 0 0 auto;
   width: 0.92rem;
   height: 0.92rem;
-  flex: 0 0 auto;
   color: var(--text-muted);
   transform: translateY(0.5px);
 }
@@ -369,9 +365,9 @@ a {
 }
 
 .copy-email-button__icon--check {
+  color: var(--text-soft);
   opacity: 0;
   transform: scale(0.72);
-  color: var(--text-soft);
 }
 
 .copy-email-button.is-copied .copy-email-button__status {
@@ -395,12 +391,16 @@ a {
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+  clip: rect(0, 0, 0, 0);
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .experience-list:hover .experience-item:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
   .experience-list:hover .experience-item,
   .links-list:hover .hover-row {
     opacity: 0.82;
@@ -409,10 +409,6 @@ a {
   .experience-list:hover .experience-item:hover,
   .links-list:hover .hover-row:hover {
     opacity: 1;
-  }
-
-  .experience-item:hover {
-    background-color: rgba(255, 255, 255, 0.03);
   }
 
   .item-link:hover {
@@ -440,10 +436,10 @@ a {
 }
 
 .soft-link {
-  text-decoration: none;
-  border-bottom: 1px solid var(--line-strong);
   padding: 0.04em 0.15em;
   margin: -0.04em -0.15em;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-strong);
   border-radius: 3px;
   transition:
     border-color 180ms ease,
@@ -452,25 +448,25 @@ a {
 
 @media (hover: hover) and (pointer: fine) {
   .soft-link:hover {
-    border-bottom-color: var(--text);
     background-color: rgba(255, 255, 255, 0.08);
+    border-bottom-color: var(--text);
   }
 }
 
 .copy-email-button--inline.is-copied {
-  border-bottom-color: var(--text);
   background-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: var(--text);
 }
 
 .footer {
-  margin: auto auto 0;
-  width: min(100%, 620px);
-  color: var(--text-muted);
-  font-size: 0.76rem;
   display: flex;
-  justify-content: space-between;
   gap: 1rem;
+  justify-content: space-between;
+  width: min(100%, 620px);
   padding: 1.1rem 0 max(0.9rem, env(safe-area-inset-bottom));
+  margin: auto auto 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
 }
 
 .footer.block {
@@ -483,8 +479,10 @@ a {
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(255, 255, 255, 0.6);
   border-radius: 4px;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px rgba(255, 255, 255, 0.6);
 }
 
 @keyframes fade-in {

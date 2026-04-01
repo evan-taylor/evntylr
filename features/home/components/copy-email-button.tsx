@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 
 const RESET_DELAY_MS = 1800;
 
-type CopyEmailButtonProps = {
+interface CopyEmailButtonProps {
+  details?: string;
   email: string;
   label: string;
   variant: "inline" | "row";
-  details?: string;
-};
+}
 
 async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {
@@ -41,7 +41,7 @@ async function copyText(value: string) {
 
 function CopyIcon() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg aria-hidden="true" fill="none" viewBox="0 0 16 16">
       <path
         d="M6 2.75A1.25 1.25 0 0 1 7.25 1.5h5A1.25 1.25 0 0 1 13.5 2.75v5A1.25 1.25 0 0 1 12.25 9h-5A1.25 1.25 0 0 1 6 7.75z"
         stroke="currentColor"
@@ -50,8 +50,8 @@ function CopyIcon() {
       <path
         d="M4.75 5H4A1.5 1.5 0 0 0 2.5 6.5V12A1.5 1.5 0 0 0 4 13.5h5.5A1.5 1.5 0 0 0 11 12v-.75"
         stroke="currentColor"
-        strokeWidth="1.2"
         strokeLinecap="round"
+        strokeWidth="1.2"
       />
     </svg>
   );
@@ -59,13 +59,13 @@ function CopyIcon() {
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg aria-hidden="true" fill="none" viewBox="0 0 16 16">
       <path
         d="M3.5 8.4 6.3 11.2 12.5 5"
         stroke="currentColor"
-        strokeWidth="1.4"
         strokeLinecap="round"
         strokeLinejoin="round"
+        strokeWidth="1.4"
       />
     </svg>
   );
@@ -113,16 +113,16 @@ export function CopyEmailButton({
 
   return (
     <button
-      type="button"
+      aria-label={copied ? `Copied ${email}` : `Copy email address ${email}`}
       className={buttonClassName}
       onClick={handleCopy}
-      aria-label={copied ? `Copied ${email}` : `Copy email address ${email}`}
+      type="button"
     >
       {variant === "row" ? (
         <>
           <span className="copy-email-button__label-wrap">
             <span className="item-label">{label}</span>
-            <span className="copy-email-button__status" aria-hidden="true">
+            <span aria-hidden="true" className="copy-email-button__status">
               <span className="copy-email-button__icon copy-email-button__icon--copy">
                 <CopyIcon />
               </span>
@@ -136,7 +136,7 @@ export function CopyEmailButton({
       ) : (
         <>
           <span>{label}</span>
-          <span className="copy-email-button__status" aria-hidden="true">
+          <span aria-hidden="true" className="copy-email-button__status">
             <span className="copy-email-button__icon copy-email-button__icon--copy">
               <CopyIcon />
             </span>
@@ -146,7 +146,7 @@ export function CopyEmailButton({
           </span>
         </>
       )}
-      <span className="sr-only" aria-live="polite">
+      <span aria-live="polite" className="sr-only">
         {copied ? "Email address copied to clipboard." : ""}
       </span>
     </button>

@@ -21,7 +21,8 @@ export function UiMotion() {
         return;
       }
 
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
       const value = maxScroll > 0 ? window.scrollY / maxScroll : 0;
 
       progressEl.style.transform = `scaleX(${Math.min(Math.max(value, 0), 1)})`;
@@ -49,16 +50,13 @@ export function UiMotion() {
     }
 
     const previewEl = document.querySelector(".preview");
-    const previewImg = previewEl?.querySelector("img");
     const experienceItems = Array.from(
       document.querySelectorAll(".experience-item[data-preview]")
     );
 
     const onExperiencePointerMove = (event: Event) => {
       if (
-        !(event instanceof PointerEvent) ||
-        !(previewEl instanceof HTMLElement) ||
-        !(previewImg instanceof HTMLImageElement)
+        !(event instanceof PointerEvent && previewEl instanceof HTMLElement)
       ) {
         return;
       }
@@ -69,8 +67,8 @@ export function UiMotion() {
       }
 
       const src = row.dataset.preview ?? "";
-      if (previewImg.src !== src && src) {
-        previewImg.src = src;
+      if (src) {
+        previewEl.style.setProperty("--preview-image", `url("${src}")`);
       }
 
       previewEl.style.setProperty("--px", `${event.clientX + 6}px`);
@@ -87,18 +85,18 @@ export function UiMotion() {
       }
     };
 
-    experienceItems.forEach((row) => {
+    for (const row of experienceItems) {
       row.addEventListener("pointermove", onExperiencePointerMove);
       row.addEventListener("pointerleave", onExperiencePointerLeave);
-    });
+    }
 
     return () => {
       window.removeEventListener("scroll", queueScrollProgress);
       window.removeEventListener("resize", queueScrollProgress);
-      experienceItems.forEach((row) => {
+      for (const row of experienceItems) {
         row.removeEventListener("pointermove", onExperiencePointerMove);
         row.removeEventListener("pointerleave", onExperiencePointerLeave);
-      });
+      }
     };
   }, []);
 
