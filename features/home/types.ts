@@ -2,7 +2,7 @@ export interface ExperienceItem {
   details: string;
   organization: string;
   period: string;
-  preview: string;
+  preview?: string;
   role: string;
 }
 
