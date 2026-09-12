@@ -62,7 +62,7 @@ export function HomePage() {
               {experienceItems.map((item) => (
                 <li
                   className="experience-item hover-row"
-                  data-preview={item.preview}
+                  data-preview={item.preview ?? undefined}
                   key={item.organization}
                 >
                   <p className="experience-period">{item.period}</p>
@@ -134,7 +134,7 @@ export function HomePage() {
               or on{" "}
               <a
                 className="soft-link"
-                href="https://www.linkedin.com"
+                href="https://www.linkedin.com/in/evan-l-taylor/"
                 rel="noreferrer noopener"
                 target="_blank"
               >

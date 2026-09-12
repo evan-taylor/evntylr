@@ -11,6 +11,13 @@ export const heroContent = {
 
 export const experienceItems: ExperienceItem[] = [
   {
+    organization: "Soljio",
+    role: "Founder",
+    period: "Aug 2025 - Present",
+    details: "Founding Soljio.",
+    preview: "/previews/soljio.png",
+  },
+  {
     organization: "Hovn",
     role: "Software Development Intern",
     period: "2025 - Present",
@@ -18,18 +25,18 @@ export const experienceItems: ExperienceItem[] = [
     preview: "/previews/hovn.png",
   },
   {
-    organization: "Manage Incorporated",
-    role: "Engineering Intern",
-    period: "2025 - Present",
-    details: "Connecting Apache web interfaces with IBM i backend systems.",
-    preview: "/previews/manage.png",
-  },
-  {
     organization: "Taylored Instruction LLC",
     role: "Founder",
     period: "2023 - Present",
     details: "Running operations for a health and safety training business.",
     preview: "/previews/taylored.png",
+  },
+  {
+    organization: "Manage Incorporated",
+    role: "Engineering Intern",
+    period: "2025 - Jun 2026",
+    details: "Connecting Apache web interfaces with IBM i backend systems.",
+    preview: "/previews/manage.png",
   },
 ];
 
@@ -43,7 +50,7 @@ export const linkItems: LinkItem[] = [
   {
     kind: "link",
     label: "LinkedIn",
-    href: "https://www.linkedin.com",
+    href: "https://www.linkedin.com/in/evan-l-taylor/",
     details: "Education, projects, and work history.",
   },
   {
