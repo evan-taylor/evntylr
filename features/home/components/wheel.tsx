@@ -1,7 +1,10 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useWheel } from "./use-wheel";
+
+const IDLE_LIMIT_MS = 2000;
+const IDLE_FALLBACK_MS = 1200;
 
 export interface WheelSection {
   id: string;
@@ -35,6 +38,19 @@ export function Wheel({ sections }: { sections: WheelSection[] }) {
     window.history.replaceState(null, "", `${pathname}${search}${hash}`);
   }, [activeId, sections]);
 
+  // Screenshots sit in hidden panels. Once the page is idle the panels are laid
+  // out invisibly (see .panels[data-warm]) so the images load before a spin.
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    const warmUp = () => setWarm(true);
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(warmUp, { timeout: IDLE_LIMIT_MS });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(warmUp, IDLE_FALLBACK_MS);
+    return () => clearTimeout(id);
+  }, []);
+
   // Follow the address when it changes under us, such as an edited hash.
   useEffect(() => {
     const onHashChange = () => {
@@ -67,7 +83,7 @@ export function Wheel({ sections }: { sections: WheelSection[] }) {
         </div>
       </nav>
 
-      <div className="panels">
+      <div className="panels" data-warm={warm ? "" : undefined}>
         {sections.map((section, index) => (
           <section
             aria-label={section.name}

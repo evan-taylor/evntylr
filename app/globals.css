@@ -169,11 +169,23 @@ button {
 
 /* Panels */
 .panels {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   /* Tallest panel reserved, so spinning never moves the page. */
   min-height: 28rem;
+}
+
+/* After first load, hidden panels are laid out invisibly inside the visible
+   one's box so their lazy screenshots load ahead of the next spin. */
+.panels[data-warm] .panel[hidden] {
+  position: absolute;
+  inset: 0;
+  display: flex !important;
+  visibility: hidden;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .panel {

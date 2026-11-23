@@ -14,6 +14,9 @@ import { CopyEmailButton } from "./copy-email-button";
 import { LocalTime } from "./local-time";
 import { Wheel, type WheelSection } from "./wheel";
 
+const NO_SCRIPT_STYLES =
+  ".panel[hidden]{display:flex!important}.wheel-frame{display:none}.wheel-layout{grid-template-columns:minmax(0,24rem)}.panels{gap:3.5rem}";
+
 const isExternalLink = (href: string) => href.startsWith("http");
 
 function ExternalArrow() {
@@ -36,13 +39,7 @@ function AboutPanel() {
   );
 }
 
-function ExperiencePanel({
-  item,
-  priority,
-}: {
-  item: ExperienceItem;
-  priority: boolean;
-}) {
+function ExperiencePanel({ item }: { item: ExperienceItem }) {
   return (
     <>
       {item.preview ? (
@@ -50,8 +47,6 @@ function ExperiencePanel({
           <Image
             alt={`The ${item.organization} website`}
             fill
-            loading={priority ? undefined : "eager"}
-            priority={priority}
             sizes="(max-width: 760px) 100vw, 384px"
             src={item.preview}
           />
@@ -126,11 +121,11 @@ export function HomePage() {
 
   const sections: WheelSection[] = [
     { id: "about", label: "About", name: "About", panel: <AboutPanel /> },
-    ...experienceItems.map((item, index) => ({
+    ...experienceItems.map((item) => ({
       id: item.id,
       label: item.label ?? item.organization,
       name: item.organization,
-      panel: <ExperiencePanel item={item} priority={index === 0} />,
+      panel: <ExperiencePanel item={item} />,
     })),
     {
       id: "contact",
@@ -145,6 +140,10 @@ export function HomePage() {
       <script type="application/ld+json">
         {JSON.stringify(personStructuredData)}
       </script>
+      {/* Without JavaScript the wheel cannot turn, so show every section as a plain page. */}
+      <noscript>
+        <style>{NO_SCRIPT_STYLES}</style>
+      </noscript>
       <header className="site-header">
         <h1 className="site-name">{heroContent.name}</h1>
         <p className="site-place">

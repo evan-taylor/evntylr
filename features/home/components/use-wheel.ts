@@ -102,6 +102,8 @@ export function useWheel(initialIndex: () => number) {
       }
       event.preventDefault();
       wheel.scrollTo({ top: centerOffset(wheel, row), behavior: "instant" });
+      // Focus travels with the selection, so Enter and the outline stay on it.
+      row.focus({ preventScroll: true });
     };
 
     const start = rows[initial.current()];
