@@ -1,0 +1,66 @@
+app/manifest.ts
+  s_0afdc9d2f80d92::t_da0a3956363071 11-12
+lib/site.ts
+  s_0afdc9d2f80d92::t_da0a3956363071 11
+features/home/components/copy-email-button.tsx
+  s_0afdc9d2f80d92::t_da0a3956363071 5,35,51,68-69,73-74
+features/home/components/wheel.tsx
+  s_0afdc9d2f80d92::t_da0a3956363071 1-37,50-84
+  s_0afdc9d2f80d92::t_cea760a50e2fc4 38-49
+app/icon.svg
+  s_0afdc9d2f80d92::t_2aba4c62e00da2 2-7
+features/home/components/local-time.tsx
+  s_0afdc9d2f80d92::t_da0a3956363071 1-24
+features/home/content.ts
+  s_0afdc9d2f80d92::t_da0a3956363071 1,4-6,11,14-15,18-28,31,34-38,42,45-49,53-59,63-66,68-72,76-84,89-92
+  s_0afdc9d2f80d92::t_de14e53e98eb9a 3,60-62
+  s_0afdc9d2f80d92::t_215962b912ff0a 13
+features/home/types.ts
+  s_0afdc9d2f80d92::t_da0a3956363071 3-5,10-11,14-18
+features/home/components/use-wheel.ts
+  s_0afdc9d2f80d92::t_da0a3956363071 1-124
+app/opengraph-image.tsx
+  s_0afdc9d2f80d92::t_215962b912ff0a 23-25,55-57,72,77,91,104,107-110,112-115,118,120,123-125,128,131
+  s_0afdc9d2f80d92::t_f14195f03f01e5 14,33-44,46-47
+  s_0afdc9d2f80d92::t_de14e53e98eb9a 1-2,4,16-22,26-32,45,48-54,58-67,76,78-80,83-90,92-101,103,134-140
+  s_0afdc9d2f80d92::t_e3c03021ec9296 15
+scripts/capture-previews.mjs
+  s_0afdc9d2f80d92::t_de14e53e98eb9a 6
+app/globals.css
+  s_0afdc9d2f80d92::t_da0a3956363071 2-8,10-13,29-30,32-33,35,37-45,53-56,59-60,63-64,67-68,71,73-74,78-84,87-89,92-93,96,100-104,107,109-110,112,115-124,127-136,139-140,143-148,150-152,154-157,159-160,163,166-167,170-176,179-183,186,188-197,200-202,205-211,214-217,220-222,225-228,231-235,238-248,251-255,258-263,266-269,272-274,277-281,284,287,289-298,301-302,304-305,308-310,313-314,318-322,325-327,330-332,335-337,340-341,346-347
+features/home/components/home-page.tsx
+  s_0afdc9d2f80d92::t_da0a3956363071 1,4-5,8,10,12,14-103,113,124,127-142,144,148-156
+app/layout.tsx
+  s_0afdc9d2f80d92::t_da0a3956363071 2,6,49-50,60
+app/apple-icon.tsx
+  s_0afdc9d2f80d92::t_2aba4c62e00da2 10-20,28,30-32,35,37,39-40,42,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "22d8546fec9d51e81cd8d411052bb41967907193",
+  "prompts": {
+    "b6861d1231164aea": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d8924-1258-7740-899e-63faff9d46b4",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Evan Taylor <eltaylor1104@gmail.com>",
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_0afdc9d2f80d92": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "184dcad2-30fd-4ca6-bcc5-6ade5d1a0e4e",
+        "model": "claude-fable-5-2"
+      },
+      "human_author": "Evan Taylor <eltaylor1104@gmail.com>"
+    }
+  }
+}
