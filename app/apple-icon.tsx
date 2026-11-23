@@ -7,6 +7,17 @@ export const size = {
 
 export const contentType = "image/png";
 
+const INK = "#1d1a17";
+const FADED = "rgba(29, 26, 23, 0.32)";
+
+// The wheel, drawn at the same proportions as app/icon.svg: one selected row
+// between two that are turning away. iOS rounds the corners itself.
+const rows = [
+  { width: 62, height: 17, color: FADED },
+  { width: 96, height: 28, color: INK },
+  { width: 79, height: 17, color: FADED },
+];
+
 export default function AppleIcon() {
   return new ImageResponse(
     <div
@@ -14,66 +25,24 @@ export default function AppleIcon() {
         width: "100%",
         height: "100%",
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
         justifyContent: "center",
-        background: "#0a0a0c",
-        borderRadius: "44px",
-        border: "4px solid rgba(255,255,255,0.12)",
+        gap: 17,
+        paddingLeft: 42,
+        background: "#f8f7f4",
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          width: 78,
-          height: 92,
-          display: "flex",
-        }}
-      >
+      {rows.map((row) => (
         <div
+          key={row.width}
           style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 16,
+            width: row.width,
+            height: row.height,
             borderRadius: 999,
-            background: "#f1f1f3",
+            background: row.color,
           }}
         />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            width: 78,
-            height: 16,
-            borderRadius: 999,
-            background: "#f1f1f3",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 38,
-            width: 62,
-            height: 16,
-            borderRadius: 999,
-            background: "#f1f1f3",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            bottom: 0,
-            width: 78,
-            height: 16,
-            borderRadius: 999,
-            background: "#f1f1f3",
-          }}
-        />
-      </div>
+      ))}
     </div>,
     size
   );

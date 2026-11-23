@@ -1,21 +1,18 @@
 export interface ExperienceItem {
   details: string;
+  id: string;
+  /** Short name for the wheel when it differs from the organization. */
+  label?: string;
   organization: string;
   period: string;
   preview?: string;
   role: string;
+  url?: string;
+  urlLabel?: string;
 }
 
-export type LinkItem =
-  | {
-      kind: "link";
-      label: string;
-      href: string;
-      details: string;
-    }
-  | {
-      kind: "copy";
-      label: string;
-      email: string;
-      details: string;
-    };
+export interface ContactLink {
+  hint: string;
+  href: string;
+  label: string;
+}

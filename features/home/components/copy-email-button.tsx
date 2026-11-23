@@ -2,14 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const RESET_DELAY_MS = 1800;
-
-interface CopyEmailButtonProps {
-  details?: string;
-  email: string;
-  label: string;
-  variant: "inline" | "row";
-}
+const RESET_DELAY_MS = 1500;
 
 async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {
@@ -39,44 +32,7 @@ async function copyText(value: string) {
   return didCopy;
 }
 
-function CopyIcon() {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M6 2.75A1.25 1.25 0 0 1 7.25 1.5h5A1.25 1.25 0 0 1 13.5 2.75v5A1.25 1.25 0 0 1 12.25 9h-5A1.25 1.25 0 0 1 6 7.75z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path
-        d="M4.75 5H4A1.5 1.5 0 0 0 2.5 6.5V12A1.5 1.5 0 0 0 4 13.5h5.5A1.5 1.5 0 0 0 11 12v-.75"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 16 16">
-      <path
-        d="M3.5 8.4 6.3 11.2 12.5 5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
-
-export function CopyEmailButton({
-  email,
-  label,
-  variant,
-  details,
-}: CopyEmailButtonProps) {
+export function CopyEmailButton({ email }: { email: string }) {
   const [copied, setCopied] = useState(false);
   const resetTimeoutRef = useRef<number | null>(null);
 
@@ -92,6 +48,7 @@ export function CopyEmailButton({
     const didCopy = await copyText(email);
 
     if (!didCopy) {
+      window.location.href = `mailto:${email}`;
       return;
     }
 
@@ -106,49 +63,15 @@ export function CopyEmailButton({
     }, RESET_DELAY_MS);
   };
 
-  const buttonClassName =
-    variant === "row"
-      ? `item-link copy-email-button copy-email-button--row${copied ? " is-copied" : ""}`
-      : `soft-link copy-email-button copy-email-button--inline${copied ? " is-copied" : ""}`;
-
   return (
     <button
-      aria-label={copied ? `Copied ${email}` : `Copy email address ${email}`}
-      className={buttonClassName}
+      aria-label={`Copy email address ${email}`}
+      className="contact-row"
       onClick={handleCopy}
       type="button"
     >
-      {variant === "row" ? (
-        <>
-          <span className="copy-email-button__label-wrap">
-            <span className="item-label">{label}</span>
-            <span aria-hidden="true" className="copy-email-button__status">
-              <span className="copy-email-button__icon copy-email-button__icon--copy">
-                <CopyIcon />
-              </span>
-              <span className="copy-email-button__icon copy-email-button__icon--check">
-                <CheckIcon />
-              </span>
-            </span>
-          </span>
-          <span className="item-description">{details}</span>
-        </>
-      ) : (
-        <>
-          <span>{label}</span>
-          <span aria-hidden="true" className="copy-email-button__status">
-            <span className="copy-email-button__icon copy-email-button__icon--copy">
-              <CopyIcon />
-            </span>
-            <span className="copy-email-button__icon copy-email-button__icon--check">
-              <CheckIcon />
-            </span>
-          </span>
-        </>
-      )}
-      <span aria-live="polite" className="sr-only">
-        {copied ? "Email address copied to clipboard." : ""}
-      </span>
+      <span>Email</span>
+      <span aria-live="polite">{copied ? "Copied" : email}</span>
     </button>
   );
 }

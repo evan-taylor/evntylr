@@ -3,6 +3,7 @@ import { chromium } from "playwright";
 const sites = [
   { url: "https://soljio.com", file: "public/previews/soljio.png" },
   { url: "https://www.hovn.app", file: "public/previews/hovn.png" },
+  { url: "https://www.codebox.so", file: "public/previews/codebox.png" },
   { url: "https://www.manageinc.com", file: "public/previews/manage.png" },
   {
     url: "https://tayloredinstruction.com",
