@@ -8,7 +8,7 @@ export const siteConfig = {
   name: "Evan Taylor",
   title: "Evan Taylor | Software Developer",
   description:
-    "Personal website of Evan Taylor, a Computer Science student at Cal Poly building polished software with React, Python, and Java.",
+    "Evan Taylor is a software developer and computer science student at Cal Poly. Founder of Soljio and software development intern at Hovn.",
   url: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL),
   locale: "en_US",
 };

@@ -1,19 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, IBM_Plex_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+const sans = Inter({
   subsets: ["latin"],
-  weight: ["400", "500"],
   variable: "--font-sans",
-});
-
-const serif = Cormorant_Garamond({
-  subsets: ["latin"],
-  style: ["italic"],
-  weight: ["400"],
-  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -54,8 +46,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0c",
-  colorScheme: "dark",
+  themeColor: "#f8f7f4",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -65,7 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${serif.variable}`}>{children}</body>
+      <body className={sans.variable}>{children}</body>
     </html>
   );
 }

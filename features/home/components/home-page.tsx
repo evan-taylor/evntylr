@@ -1,14 +1,101 @@
+import Image from "next/image";
 import { siteConfig } from "@/lib/site";
 import {
+  aboutFacts,
+  contactLinks,
   EMAIL_ADDRESS,
   experienceItems,
-  footerContent,
+  GITHUB_HREF,
   heroContent,
-  linkItems,
-  nowContent,
+  LINKEDIN_HREF,
 } from "../content";
+import type { ExperienceItem } from "../types";
 import { CopyEmailButton } from "./copy-email-button";
-import { UiMotion } from "./ui-motion";
+import { LocalTime } from "./local-time";
+import { Wheel, type WheelSection } from "./wheel";
+
+const NO_SCRIPT_STYLES =
+  ".panel[hidden]{display:flex!important}.wheel-frame{display:none}.wheel-layout{grid-template-columns:minmax(0,24rem)}.panels{gap:3.5rem}";
+
+const isExternalLink = (href: string) => href.startsWith("http");
+
+function ExternalArrow() {
+  return <span aria-hidden="true">↗</span>;
+}
+
+function AboutPanel() {
+  return (
+    <>
+      <p className="panel-lead">{heroContent.lead}</p>
+      <dl className="facts">
+        {aboutFacts.map((fact) => (
+          <div key={fact.label}>
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
+  );
+}
+
+function ExperiencePanel({ item }: { item: ExperienceItem }) {
+  return (
+    <>
+      {item.preview ? (
+        <div className="panel-shot">
+          <Image
+            alt={`The ${item.organization} website`}
+            fill
+            sizes="(max-width: 760px) 100vw, 384px"
+            src={item.preview}
+          />
+        </div>
+      ) : null}
+      <h2 className="panel-title">{item.organization}</h2>
+      <p className="panel-meta">
+        {item.role}, {item.period}
+      </p>
+      <p className="panel-body">{item.details}</p>
+      {item.url ? (
+        <a
+          className="panel-link"
+          href={item.url}
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          {item.urlLabel}
+          <ExternalArrow />
+        </a>
+      ) : null}
+    </>
+  );
+}
+
+function ContactPanel() {
+  return (
+    <>
+      <h2 className="panel-title">Say hello</h2>
+      <div className="contact-rows">
+        <CopyEmailButton email={EMAIL_ADDRESS} />
+        {contactLinks.map((link) => (
+          <a
+            className="contact-row"
+            href={link.href}
+            key={link.label}
+            rel={isExternalLink(link.href) ? "noreferrer noopener" : undefined}
+            target={isExternalLink(link.href) ? "_blank" : undefined}
+          >
+            <span>{link.label}</span>
+            <span>
+              {link.hint} <ExternalArrow />
+            </span>
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export function HomePage() {
   const personStructuredData = {
@@ -18,6 +105,7 @@ export function HomePage() {
     url: siteConfig.url,
     description: siteConfig.description,
     email: EMAIL_ADDRESS,
+    sameAs: [GITHUB_HREF, LINKEDIN_HREF],
     address: {
       "@type": "PostalAddress",
       addressLocality: "San Luis Obispo",
@@ -28,128 +116,43 @@ export function HomePage() {
       "@type": "CollegeOrUniversity",
       name: "California Polytechnic State University",
     },
-    knowsAbout: [
-      "React",
-      "Python",
-      "Java",
-      "Algorithms",
-      "Software Development",
-    ],
+    knowsAbout: ["TypeScript", "React", "Next.js", "Python", "PostgreSQL"],
   };
 
+  const sections: WheelSection[] = [
+    { id: "about", label: "About", name: "About", panel: <AboutPanel /> },
+    ...experienceItems.map((item) => ({
+      id: item.id,
+      label: item.label ?? item.organization,
+      name: item.organization,
+      panel: <ExperiencePanel item={item} />,
+    })),
+    {
+      id: "contact",
+      label: "Contact",
+      name: "Contact",
+      panel: <ContactPanel />,
+    },
+  ];
+
   return (
-    <div className="site-shell">
+    <div className="site">
       <script type="application/ld+json">
         {JSON.stringify(personStructuredData)}
       </script>
-      <UiMotion />
-      <div aria-hidden="true" className="scroll-progress" />
-      <div aria-hidden="true" className="preview" />
-      <div className="site-frame">
-        <main className="content">
-          <section className="block">
-            <p className="name">{heroContent.name}</p>
-            <p className="lead">
-              <span className="serif">{heroContent.accent}</span>{" "}
-              {heroContent.lead}
-            </p>
-            <p className="copy">{heroContent.location}</p>
-          </section>
-
-          <section className="section block">
-            <h2 className="section-title">Experience</h2>
-            <ul aria-label="Experience" className="experience-list">
-              {experienceItems.map((item) => (
-                <li
-                  className="experience-item hover-row"
-                  data-preview={item.preview ?? undefined}
-                  key={item.organization}
-                >
-                  <p className="experience-period">{item.period}</p>
-                  <div className="experience-main">
-                    <p className="experience-role">{item.role}</p>
-                    <p className="experience-organization">
-                      {item.organization}
-                    </p>
-                    <p className="experience-details">{item.details}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="section block">
-            <h2 className="section-title">Selected Links</h2>
-            <ul aria-label="Selected links" className="links-list">
-              {linkItems.map((item) => (
-                <li className="hover-row" key={item.label}>
-                  {item.kind === "copy" ? (
-                    <CopyEmailButton
-                      details={item.details}
-                      email={item.email}
-                      label={item.label}
-                      variant="row"
-                    />
-                  ) : (
-                    <a
-                      className="item-link"
-                      href={item.href}
-                      rel={
-                        item.href.startsWith("http")
-                          ? "noreferrer noopener"
-                          : undefined
-                      }
-                      target={
-                        item.href.startsWith("http") ? "_blank" : undefined
-                      }
-                    >
-                      <span className="item-label">
-                        {item.label}
-                        <span aria-hidden="true" className="item-arrow">
-                          ↗
-                        </span>
-                      </span>
-                      <span className="item-description">{item.details}</span>
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="section block">
-            <h2 className="section-title">Now</h2>
-            <p className="copy">{nowContent}</p>
-          </section>
-
-          <section className="section block">
-            <h2 className="section-title">Connect</h2>
-            <p className="copy">
-              Reach me at{" "}
-              <CopyEmailButton
-                email={EMAIL_ADDRESS}
-                label={EMAIL_ADDRESS}
-                variant="inline"
-              />{" "}
-              or on{" "}
-              <a
-                className="soft-link"
-                href="https://www.linkedin.com/in/evan-l-taylor/"
-                rel="noreferrer noopener"
-                target="_blank"
-              >
-                LinkedIn
-              </a>
-              .
-            </p>
-          </section>
-        </main>
-
-        <footer className="footer block">
-          <span>{footerContent.credit}</span>
-          <span className="year">{footerContent.year}</span>
-        </footer>
-      </div>
+      {/* Without JavaScript the wheel cannot turn, so show every section as a plain page. */}
+      <noscript>
+        <style>{NO_SCRIPT_STYLES}</style>
+      </noscript>
+      <header className="site-header">
+        <h1 className="site-name">{heroContent.name}</h1>
+        <p className="site-place">
+          {heroContent.city}, <LocalTime timeZone={heroContent.timeZone} />
+        </p>
+      </header>
+      <main className="site-main">
+        <Wheel sections={sections} />
+      </main>
     </div>
   );
 }
