@@ -1,0 +1,26 @@
+features/home/components/wheel.tsx
+  s_0afdc9d2f80d92::t_324eedba53e7c0 3,6-8,41-53,86
+app/globals.css
+  s_0afdc9d2f80d92::t_324eedba53e7c0 172,180-188
+  s_0afdc9d2f80d92::t_3cbf542f797471 189-190
+features/home/components/home-page.tsx
+  s_0afdc9d2f80d92::t_8fdfacd23f6d99 17-19,42,124,128,143-146
+features/home/components/use-wheel.ts
+  s_0afdc9d2f80d92::t_8fdfacd23f6d99 105-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b6cae4874ce1fd551cb3e1c04d147247cf12da84",
+  "prompts": {},
+  "sessions": {
+    "s_0afdc9d2f80d92": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "184dcad2-30fd-4ca6-bcc5-6ade5d1a0e4e",
+        "model": "claude-fable-5-2"
+      },
+      "human_author": "Evan Taylor <eltaylor1104@gmail.com>"
+    }
+  }
+}
